@@ -7,10 +7,6 @@ PROGS := lockdown_enforce \
 
 all:	$(PROGS)
 
-# Note: .clang-format adapted from linux tree
-check:
-	@clang-format -n *.h */*.c
-
 $(PROGS):
 	$(MAKE) -C $@
 
