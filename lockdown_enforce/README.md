@@ -21,3 +21,8 @@ This program lets you enable lockdown-style policy on a running system with
 a stock distribution kernel, without a reboot, and without permanently
 enabling the lockdown LSM.  Individual reasons can be added or removed by
 modifying the `switch` statement and reloading.
+
+### Bugs / Limitations
+
+- This program is experimental and for educational purposes only.  It offers no real protection because root can unload it.
+The whole mechanism behind [kernel\_lockdown](https://man7.org/linux/man-pages/man7/kernel_lockdown.7.html) resembles BSD's [secure_level](https://man.openbsd.org/securelevel), which is [not that great](https://isopenbsdsecu.re/mitigations/secure_levels/).
