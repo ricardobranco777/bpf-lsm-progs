@@ -3,13 +3,19 @@ PROGS := lockdown_enforce \
 	 setuid_restrict \
 	 userns_restrict
 
-TARGETS	= all clean load unload enable disable status test
-.PHONY: $(TARGETS)
+TARGETS	= load unload enable disable status test
+.PHONY: all clean $(TARGETS) $(PROGS)
 
 all:	$(PROGS)
 
 $(PROGS):
-	$(MAKE) -C $@
+	@$(MAKE) --no-print-directory -C $@
+
+clean:
+	@for dir in $(PROGS); do \
+		$(MAKE) --no-print-directory -C $$dir $@; \
+	done
+	$(RM) vmlinux.h
 
 $(TARGETS):
 	@for dir in $(PROGS); do \
