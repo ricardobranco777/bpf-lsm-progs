@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-2.0
+// SPDX-License-Identifier: (GPL-2.0-only OR BSD-2-Clause)
 #include "vmlinux.h"
 #include <bpf/bpf_helpers.h>
 #include <bpf/bpf_core_read.h>
@@ -7,7 +7,7 @@
 #define CAP_SYS_ADMIN	21
 #define EPERM	1
 
-char LICENSE[] SEC("license") = "GPL";
+char LICENSE[] SEC("license") = "Dual BSD/GPL";
 
 SEC("lsm/userns_create")
 int BPF_PROG(restrict_userns_create, struct cred *cred, int ret)
