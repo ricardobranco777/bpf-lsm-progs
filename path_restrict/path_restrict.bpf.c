@@ -3,6 +3,7 @@
 #include <bpf/bpf_helpers.h>
 #include <bpf/bpf_core_read.h>
 #include <bpf/bpf_tracing.h>
+#include "common.bpf.h"
 
 #define CAP_SYS_ADMIN	21
 #define EPERM		1
@@ -36,21 +37,6 @@ static __always_inline int prefix_match(const char *pfx, const char *s)
 			return -1;
 	}
 	return PREFIX_MAX;
-}
-
-struct {
-	__uint(type, BPF_MAP_TYPE_ARRAY);
-	__uint(max_entries, 1);
-	__type(key, __u32);
-	__type(value, __u8);
-} enabled SEC(".maps");
-
-static __always_inline bool policy_enabled(void)
-{
-	__u32 key = 0;
-	__u8 *val = bpf_map_lookup_elem(&enabled, &key);
-
-	return val && *val;
 }
 
 SEC("lsm/file_open")

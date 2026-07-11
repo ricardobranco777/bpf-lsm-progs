@@ -3,27 +3,13 @@
 #include <bpf/bpf_helpers.h>
 #include <bpf/bpf_core_read.h>
 #include <bpf/bpf_tracing.h>
+#include "common.bpf.h"
 
 #define EPERM	1
 #define S_ISUID	0004000
 #define S_ISGID	0002000
 
 char LICENSE[] SEC("license") = "Dual BSD/GPL";
-
-struct {
-	__uint(type, BPF_MAP_TYPE_ARRAY);
-	__uint(max_entries, 1);
-	__type(key, __u32);
-	__type(value, __u8);
-} enabled SEC(".maps");
-
-static __always_inline bool policy_enabled(void)
-{
-	__u32 key = 0;
-	__u8 *val = bpf_map_lookup_elem(&enabled, &key);
-
-	return val && *val;
-}
 
 static __always_inline int deny_setuid_mode(umode_t mode, int ret)
 {

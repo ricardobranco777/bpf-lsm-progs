@@ -12,8 +12,8 @@ all:	$(PROG).bpf.o
 vmlinux.h:
 	@$(BPFTOOL) btf dump file /sys/kernel/btf/vmlinux format c > $@
 
-$(PROG).bpf.o: $(PROG).bpf.c vmlinux.h
-	$(CLANG) $(CFLAGS) -Wno-unused-parameter -target bpf -D__TARGET_ARCH_$(ARCH) -I. -c $< -o $@
+$(PROG).bpf.o: $(PROG).bpf.c vmlinux.h ../common.bpf.h
+	$(CLANG) $(CFLAGS) -Wno-unused-parameter -target bpf -D__TARGET_ARCH_$(ARCH) -I. -I.. -c $< -o $@
 
 clean:
 	$(RM) $(PROG).bpf.o vmlinux.h
