@@ -9,14 +9,27 @@
 
 char LICENSE[] SEC("license") = "Dual BSD/GPL";
 
-volatile bool enabled = true;
+struct {
+	__uint(type, BPF_MAP_TYPE_ARRAY);
+	__uint(max_entries, 1);
+	__type(key, __u32);
+	__type(value, __u8);
+} enabled SEC(".maps");
+
+static __always_inline bool policy_enabled(void)
+{
+	__u32 key = 0;
+	__u8 *val = bpf_map_lookup_elem(&enabled, &key);
+
+	return val && *val;
+}
 
 SEC("lsm/userns_create")
 int BPF_PROG(restrict_userns_create, struct cred *cred, int ret)
 {
 	if (ret != 0)
 		return ret;
-	if (!enabled)
+	if (!policy_enabled())
 		return 0;
 	if (BPF_CORE_READ(cred, user_ns, level) != 0)
 		return -EPERM;

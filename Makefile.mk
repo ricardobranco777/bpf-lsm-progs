@@ -2,7 +2,8 @@ ARCH    := $(shell uname -m | sed 's/x86_64/x86/;s/aarch64/arm64/;s/arm.*/arm/;s
 BPFTOOL ?= $(shell command -v bpftool 2>/dev/null || echo /usr/sbin/bpftool)
 CLANG   ?= clang
 CFLAGS  := -g -O2 -Wall -Wextra -Wno-missing-declarations
-MAPDIR := /sys/fs/bpf/$(PROG)/maps
+MAPDIR  := /sys/fs/bpf/$(PROG)/maps
+MAPFILE := $(MAPDIR)/enabled
 
 .PHONY: all clean load unload enable disable status test
 
@@ -26,15 +27,15 @@ unload:
 	@$(SUDO) $(RM) -r -v /sys/fs/bpf/$(PROG)
 
 enable:
-	$(SUDO) sh -c 'bpftool map update pinned $(MAPDIR)/*data key 0 0 0 0 value 01'
+	$(SUDO) bpftool map update pinned $(MAPFILE) key 0 0 0 0 value 01
 
 disable:
-	$(SUDO) sh -c 'bpftool map update pinned $(MAPDIR)/*data key 0 0 0 0 value 00'
+	$(SUDO) bpftool map update pinned $(MAPFILE) key 0 0 0 0 value 00
 
 status:
 	@if ! $(SUDO) test -d /sys/fs/bpf/$(PROG) 2>/dev/null; then \
 		echo "not loaded"; \
-	elif $(SUDO) sh -c 'bpftool -j map dump pinned $(MAPDIR)/*data' 2>/dev/null | jq -e '.[0].value[0] == "0x01"' >/dev/null; then \
+	elif $(SUDO) bpftool -j map dump pinned $(MAPFILE) 2>/dev/null | jq -e '.[0].value[0] != "0x00"' >/dev/null; then \
 		echo "loaded, enabled"; \
 	else \
 		echo "loaded, disabled"; \
