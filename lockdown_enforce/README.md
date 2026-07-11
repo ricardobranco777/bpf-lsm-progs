@@ -8,7 +8,9 @@ command-line parameter.
 
 `lsm/locked_down` — fires whenever kernel code calls
 `security_locked_down(reason)`.  The hook checks the reason against the
-denylist and returns `EPERM` for matching reasons.
+denylist and returns `EPERM` for matching reasons.  Can be toggled off
+without unloading via `make disable` (see the top-level
+[README](../README.md#enable--disable)).
 
 ### Alternatives
 

@@ -19,6 +19,7 @@ BPF LSM programs for Linux security policy enforcement
 
 - bpftool
 - clang
+- jq
 - libbpf-devel (libbpf-dev on Debian based systems)
 - make
 
@@ -48,10 +49,30 @@ The restriction persists until unloaded or the system reboots.
 make unload
 ```
 
+### Enable / Disable
+
+```sh
+make disable
+make enable
+```
+
+Temporarily turns a program's enforcement on or off without unloading
+it. Takes effect immediately.
+
+### Status
+
+```sh
+make status
+```
+
+Reports whether the program is not loaded, loaded and enabled, or
+loaded and disabled.
+
 ### Test
 
 ```sh
 make test
 ```
 
-Runs the [bats](https://github.com/bats-core/bats-core) suite in `tests/` against the current program — automatically detecting whether it's loaded (`/sys/fs/bpf/<program>`) and asserting the opposite behavior in each case (operation allowed when unloaded, blocked with `EPERM` when loaded).
+Runs the test suite for the current program, checking both its loaded
+and unloaded behavior.

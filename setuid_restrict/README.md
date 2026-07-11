@@ -16,7 +16,8 @@ this program.
 
 `lsm/path_chmod` — fires on every `chmod(2)` and `fchmod(2)` call.  The
 hook checks whether the requested mode includes `S_ISUID` or `S_ISGID` and
-the caller's UID is non-zero.
+the caller's UID is non-zero.  Can be toggled off without unloading via
+`make disable` (see the top-level [README](../README.md#enable--disable)).
 
 ### Alternatives
 

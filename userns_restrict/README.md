@@ -7,13 +7,15 @@ Nested user namespaces are always denied regardless of capabilities.
 Functionally equivalent to the Debian
 `kernel.unprivileged_userns_clone=0` sysctl
 [patch](https://github.com/semplice/linux/blob/master/debian/patches/debian/add-sysctl-to-disallow-unprivileged-CLONE_NEWUSER-by-default.patch),
-but without a runtime toggle and without modifying the kernel.
+without modifying the kernel.
 
 ### Hook
 
 `lsm/userns_create` — fires on every `unshare(CLONE_NEWUSER)` and
 `clone(CLONE_NEWUSER)` call.  The hook denies if the caller's user namespace
 level is non-zero (nested namespace) or the caller lacks `CAP_SYS_ADMIN`.
+Can be toggled off without unloading via `make disable` (see the top-level
+[README](../README.md#enable--disable)).
 
 ### Alternatives
 

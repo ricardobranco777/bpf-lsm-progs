@@ -19,7 +19,8 @@ another LSM grants access.
 
 `lsm/file_open` — fires on every `open(2)` call.  The hook resolves the
 full path with `bpf_d_path` and compares it against the list of sensitive
-device prefixes.
+device prefixes.  Can be toggled off without unloading via `make disable`
+(see the top-level [README](../README.md#enable--disable)).
 
 ### Alternatives
 

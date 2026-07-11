@@ -9,11 +9,15 @@
 
 char LICENSE[] SEC("license") = "Dual BSD/GPL";
 
+volatile bool enabled = true;
+
 SEC("lsm/userns_create")
 int BPF_PROG(restrict_userns_create, struct cred *cred, int ret)
 {
 	if (ret != 0)
 		return ret;
+	if (!enabled)
+		return 0;
 	if (BPF_CORE_READ(cred, user_ns, level) != 0)
 		return -EPERM;
 

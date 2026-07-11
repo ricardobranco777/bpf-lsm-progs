@@ -3,14 +3,15 @@ PROGS := lockdown_enforce \
 	 setuid_restrict \
 	 userns_restrict
 
-.PHONY: all check clean load unload test
+TARGETS	= all clean load unload enable disable status test
+.PHONY: $(TARGETS)
 
 all:	$(PROGS)
 
 $(PROGS):
 	$(MAKE) -C $@
 
-all clean load unload test:
+$(TARGETS):
 	@for dir in $(PROGS); do \
 		$(MAKE) -C $$dir $@; \
 	done

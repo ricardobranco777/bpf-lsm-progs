@@ -2,8 +2,9 @@ ARCH    := $(shell uname -m | sed 's/x86_64/x86/;s/aarch64/arm64/;s/arm.*/arm/;s
 BPFTOOL ?= $(shell command -v bpftool 2>/dev/null || echo /usr/sbin/bpftool)
 CLANG   ?= clang
 CFLAGS  := -g -O2 -Wall -Wextra -Wno-missing-declarations
+MAPDIR := /sys/fs/bpf/$(PROG)/maps
 
-.PHONY: all clean load unload test
+.PHONY: all clean load unload enable disable status test
 
 all:	$(PROG).bpf.o
 
@@ -16,13 +17,28 @@ $(PROG).bpf.o: $(PROG).bpf.c vmlinux.h
 clean:
 	$(RM) $(PROG).bpf.o vmlinux.h
 
-unload load: SUDO := sudo
+unload load enable disable status: SUDO := sudo
 
 load: $(PROG).bpf.o
-	$(SUDO) $(BPFTOOL) prog loadall $< /sys/fs/bpf/$(PROG) autoattach
+	$(SUDO) $(BPFTOOL) prog loadall $< /sys/fs/bpf/$(PROG) pinmaps $(MAPDIR) autoattach
 
 unload:
 	@$(SUDO) $(RM) -r -v /sys/fs/bpf/$(PROG)
+
+enable:
+	$(SUDO) sh -c 'bpftool map update pinned $(MAPDIR)/*data key 0 0 0 0 value 01'
+
+disable:
+	$(SUDO) sh -c 'bpftool map update pinned $(MAPDIR)/*data key 0 0 0 0 value 00'
+
+status:
+	@if ! $(SUDO) test -d /sys/fs/bpf/$(PROG) 2>/dev/null; then \
+		echo "not loaded"; \
+	elif $(SUDO) sh -c 'bpftool -j map dump pinned $(MAPDIR)/*data' 2>/dev/null | jq -e '.[0].value[0] == "0x01"' >/dev/null; then \
+		echo "loaded, enabled"; \
+	else \
+		echo "loaded, disabled"; \
+	fi
 
 test:
 	@if sudo test -d /sys/fs/bpf/$(PROG) 2>/dev/null; then \

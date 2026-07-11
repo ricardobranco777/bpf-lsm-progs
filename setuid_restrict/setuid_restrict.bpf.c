@@ -10,10 +10,14 @@
 
 char LICENSE[] SEC("license") = "Dual BSD/GPL";
 
+volatile bool enabled = true;
+
 static __always_inline int deny_setuid_mode(umode_t mode, int ret)
 {
 	if (ret != 0)
 		return ret;
+	if (!enabled)
+		return 0;
 	if (!(mode & (S_ISUID | S_ISGID)))
 		return 0;
 

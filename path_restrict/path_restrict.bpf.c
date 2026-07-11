@@ -38,11 +38,15 @@ static __always_inline int prefix_match(const char *pfx, const char *s)
 	return PREFIX_MAX;
 }
 
+volatile bool enabled = true;
+
 SEC("lsm/file_open")
 int BPF_PROG(sensitive_files, struct file *file, int ret)
 {
 	if (ret != 0)
 		return ret;
+	if (!enabled)
+		return 0;
 
 	char path[64];
 	int n = bpf_d_path((struct path *)&file->f_path, path, sizeof(path));

@@ -7,11 +7,15 @@
 
 char LICENSE[] SEC("license") = "Dual BSD/GPL";
 
+volatile bool enabled = true;
+
 SEC("lsm/locked_down")
 int BPF_PROG(lockdown_enforce, enum lockdown_reason what, int ret)
 {
 	if (ret != 0)
 		return ret;
+	if (!enabled)
+		return 0;
 	/*
 	 * Full list in lockdown_reasons array in:
 	 * https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/tree/security/security.c
