@@ -13,5 +13,5 @@ $(PROGS):
 
 $(TARGETS):
 	@for dir in $(PROGS); do \
-		$(MAKE) -C $$dir $@; \
+		$(MAKE) --no-print-directory -C $$dir $@; \
 	done
