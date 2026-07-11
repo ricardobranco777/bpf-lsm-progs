@@ -1,4 +1,3 @@
-ARCH    := $(shell uname -m | sed 's/x86_64/x86/;s/aarch64/arm64/;s/arm.*/arm/;s/s390x/s390/;s/ppc64le/powerpc/')
 BPFTOOL ?= $(shell command -v bpftool 2>/dev/null || echo /usr/sbin/bpftool)
 CLANG   ?= clang
 CFLAGS  := -g -O2 -Wall -Wextra -Wno-missing-declarations
@@ -13,7 +12,7 @@ all:	$(PROG).bpf.o
 	$(BPFTOOL) btf dump file /sys/kernel/btf/vmlinux format c > $@
 
 $(PROG).bpf.o: $(PROG).bpf.c ../vmlinux.h ../common.bpf.h
-	$(CLANG) $(CFLAGS) -Wno-unused-parameter -target bpf -D__TARGET_ARCH_$(ARCH) -I. -I.. -c $< -o $@
+	$(CLANG) $(CFLAGS) -Wno-unused-parameter -target bpf -I. -I.. -c $< -o $@
 
 clean:
 	$(RM) $(PROG).bpf.o
