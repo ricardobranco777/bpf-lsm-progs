@@ -1,6 +1,5 @@
 BPFTOOL ?= $(shell command -v bpftool 2>/dev/null || echo /usr/sbin/bpftool)
 CLANG   ?= clang
-CFLAGS  := -g -O2 -Wall -Wextra -Wno-missing-declarations
 MAPDIR  := /sys/fs/bpf/$(PROG)/maps
 MAPFILE := $(MAPDIR)/enabled
 
@@ -12,7 +11,10 @@ all:	$(PROG).bpf.o
 	$(BPFTOOL) btf dump file /sys/kernel/btf/vmlinux format c > $@
 
 $(PROG).bpf.o: $(PROG).bpf.c ../vmlinux.h ../common.bpf.h
-	$(CLANG) $(CFLAGS) -Wno-unused-parameter -target bpf -I. -I.. -c $< -o $@
+	$(CLANG) -target bpf \
+		-Wall -Wextra -Wno-missing-declarations -Wno-unused-parameter \
+		-O2 -g -o $@ -c $< -I..
+	llvm-strip -g $@
 
 clean:
 	$(RM) $(PROG).bpf.o

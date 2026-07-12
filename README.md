@@ -21,6 +21,7 @@ BPF LSM programs for Linux security policy enforcement
 - clang
 - jq
 - libbpf-devel (libbpf-dev on Debian based systems)
+- llvm
 - make
 
 ### Test requirements
