@@ -17,4 +17,19 @@ static __always_inline bool policy_enabled(void)
 	return val && *val;
 }
 
+struct {
+	__uint(type, BPF_MAP_TYPE_ARRAY);
+	__uint(max_entries, 1);
+	__type(key, __u32);
+	__type(value, __u8);
+} logging SEC(".maps");
+
+static __always_inline bool logging_enabled(void)
+{
+	__u32 key = 0;
+	__u8 *val = bpf_map_lookup_elem(&logging, &key);
+
+	return val && *val;
+}
+
 #endif

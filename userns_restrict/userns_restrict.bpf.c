@@ -17,9 +17,20 @@ int BPF_PROG(restrict_userns_create, struct cred *cred, int ret)
 		return ret;
 	if (!policy_enabled())
 		return 0;
-	if (BPF_CORE_READ(cred, user_ns, level) != 0)
-		return -EPERM;
 
 	kernel_cap_t cap_eff = BPF_CORE_READ(cred, cap_effective);
-	return (cap_eff.val & (1ULL << CAP_SYS_ADMIN)) ? 0 : -EPERM;
+	bool nested = BPF_CORE_READ(cred, user_ns, level) != 0;
+	bool privileged = cap_eff.val & (1ULL << CAP_SYS_ADMIN);
+
+	if (!nested && privileged)
+		return 0;
+
+	if (logging_enabled()) {
+		char comm[16];
+
+		bpf_get_current_comm(&comm, sizeof(comm));
+		bpf_printk("userns_restrict: denied pid=%d comm=%s",
+			   bpf_get_current_pid_tgid() >> 32, comm);
+	}
+	return -EPERM;
 }

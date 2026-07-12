@@ -66,8 +66,22 @@ it. Takes effect immediately.
 make status
 ```
 
-Reports whether the program is not loaded, loaded and enabled, or
-loaded and disabled.
+Reports whether the program is not loaded, loaded and enabled/disabled,
+and whether logging is on or off.
+
+### Logging
+
+```sh
+make log-enable
+make log-disable
+```
+
+When on, each denied attempt is logged via `bpf_printk` with the
+process's pid and command name (plus context specific to the program,
+e.g. the blocked path or lockdown reason). Off by default. View with
+`sudo cat /sys/kernel/tracing/trace_pipe` or `sudo bpftool prog tracelog`
+while it's enabled — nothing is captured unless something is actively
+reading the pipe at the time.
 
 ### Test
 

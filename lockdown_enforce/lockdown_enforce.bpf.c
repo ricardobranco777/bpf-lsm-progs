@@ -60,6 +60,13 @@ int BPF_PROG(lockdown_enforce, enum lockdown_reason what, int ret)
 	case LOCKDOWN_TRACEFS:			// use of tracefs
 	case LOCKDOWN_XMON_RW:			// xmon read and write access
 	case LOCKDOWN_XFRM_SECRET:		// xfrm SA secret
+		if (logging_enabled()) {
+			char comm[16];
+
+			bpf_get_current_comm(&comm, sizeof(comm));
+			bpf_printk("lockdown_enforce: denied pid=%d comm=%s reason=%d",
+				   bpf_get_current_pid_tgid() >> 32, comm, what);
+		}
 		return -EPERM;
 	default:
 		return 0;

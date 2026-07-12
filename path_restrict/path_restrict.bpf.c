@@ -72,5 +72,12 @@ int BPF_PROG(sensitive_files, struct file *file, int ret)
 	if (cap_eff.val & (1ULL << CAP_SYS_ADMIN))
 		return 0;
 
+	if (logging_enabled()) {
+		char comm[16];
+
+		bpf_get_current_comm(&comm, sizeof(comm));
+		bpf_printk("path_restrict: denied pid=%d comm=%s path=%s",
+			   bpf_get_current_pid_tgid() >> 32, comm, path);
+	}
 	return -EPERM;
 }
