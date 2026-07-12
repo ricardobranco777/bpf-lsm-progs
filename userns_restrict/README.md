@@ -25,3 +25,9 @@ Can be toggled off without unloading via `make disable` (see the top-level
 | [`user.max_user_namespaces=0`](https://www.kernel.org/doc/html/latest/admin-guide/sysctl/user.html) | Upstream sysctl; also blocks root, making it too broad for most deployments. |
 | [SELinux `user_namespace { create }`](https://github.com/SELinuxProject/selinux-notebook/blob/main/src/object_classes_permissions.md) | Can restrict namespace creation by domain; requires policy. |
 | [AppArmor `userns` restriction](https://gitlab.com/apparmor/apparmor/-/wikis/unprivileged_userns_restriction) | Available since AppArmor 4.0 / kernel 6.7; restricts by profile. |
+
+### Bugs / Limitations
+
+- Breaks rootless containers for obvious reasons.
+- See the [FAQ](../FAQ.md#does-userns_restrict-break-browser-sandboxing-firefox-chromium)
+  for specifics on each browser's fallback behavior (or lack thereof).
