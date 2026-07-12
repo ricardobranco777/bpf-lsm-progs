@@ -36,6 +36,19 @@ BPF LSM programs for Linux security policy enforcement
 make
 ```
 
+### Cross-compiling
+
+```sh
+make BPFTARGET=bpfeb
+```
+
+Builds for big-endian systems (s390x, ppc64 non-LE, sparc64, ...)
+instead of the little-endian default, which covers x86_64, aarch64,
+riscv64, and most other machines. No extra toolchain needed — just
+copy the resulting `.o` file to the target. See the
+[FAQ](FAQ.md#can-i-build-these-on-one-machine-and-run-them-on-another-architecture)
+for more.
+
 ### Load
 
 ```sh

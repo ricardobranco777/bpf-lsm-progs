@@ -35,3 +35,13 @@ sandbox level; Chromium's `chrome://sandbox` shows per-layer sandbox status.
 More information in:
 - https://wiki.mozilla.org/Security/Sandbox
 - https://chromium.googlesource.com/chromium/src.git/+/refs/heads/main/sandbox/linux
+
+---
+
+### Can I build these on one machine and run them on another architecture?
+
+Yes. Use `make` for little-endian machines (x86_64, aarch64, ...) or
+`make BPFTARGET=bpfeb` for big-endian (s390x, ...), then copy the resulting
+`.o` file over.  No cross-compiler needed.
+
+The build doesn't need to match the target's kernel version either, just its byte order.

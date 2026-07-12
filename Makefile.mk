@@ -1,28 +1,30 @@
-BPFTOOL ?= $(shell command -v bpftool 2>/dev/null || echo /usr/sbin/bpftool)
-CLANG   ?= clang
-MAPDIR  := /sys/fs/bpf/$(PROG)/maps
-MAPFILE := $(MAPDIR)/enabled
-LOGFILE := $(MAPDIR)/logging
+BPFTOOL   ?= $(shell command -v bpftool 2>/dev/null || echo /usr/sbin/bpftool)
+CLANG     ?= clang
+BPFTARGET ?= bpfel
+MAPDIR    := /sys/fs/bpf/$(PROG)/maps
+MAPFILE   := $(MAPDIR)/enabled
+LOGFILE   := $(MAPDIR)/logging
+OBJ       := $(PROG).$(BPFTARGET).o
 
 .PHONY: all clean load unload enable disable status log-enable log-disable test
 
-all:	$(PROG).bpf.o
+all:	$(OBJ)
 
 ../vmlinux.h:
 	$(BPFTOOL) btf dump file /sys/kernel/btf/vmlinux format c > $@
 
-$(PROG).bpf.o: $(PROG).bpf.c ../vmlinux.h ../common.bpf.h
-	$(CLANG) -target bpf \
+$(PROG).$(BPFTARGET).o: $(PROG).bpf.c ../vmlinux.h ../common.bpf.h
+	$(CLANG) -target $(BPFTARGET) \
 		-Wall -Wextra -Wno-missing-declarations -Wno-unused-parameter \
 		-O2 -g -o $@ -c $< -I..
 	llvm-strip -g $@
 
 clean:
-	$(RM) $(PROG).bpf.o
+	$(RM) $(PROG).*.o
 
 unload load enable disable status log-enable log-disable: SUDO := sudo
 
-load: $(PROG).bpf.o
+load: $(OBJ)
 	$(SUDO) $(BPFTOOL) prog loadall $< /sys/fs/bpf/$(PROG) pinmaps $(MAPDIR) autoattach
 
 unload:
