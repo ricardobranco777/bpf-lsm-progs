@@ -37,9 +37,9 @@ status:
 	@if ! $(SUDO) test -d /sys/fs/bpf/$(PROG) 2>/dev/null; then \
 		echo "not loaded"; \
 	elif $(SUDO) bpftool -j map dump pinned $(MAPFILE) 2>/dev/null | jq -e '.[0].value[0] != "0x00"' >/dev/null; then \
-		echo "loaded, enabled"; \
+		echo "$(PROG): loaded, enabled"; \
 	else \
-		echo "loaded, disabled"; \
+		echo "$(PROG): loaded, disabled"; \
 	fi
 
 test:
