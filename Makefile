@@ -1,5 +1,4 @@
 PROGS := lockdown_enforce \
-	 path_restrict \
 	 setuid_restrict \
 	 userns_restrict
 

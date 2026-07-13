@@ -6,7 +6,6 @@ BPF LSM programs for Linux security policy enforcement
 | Program | LSM hooks | Description |
 |---------|---------|-----------------|
 | `lockdown_enforce` | `locked_down` | Enforces kernel lockdown in a more granular way than `kernel_lockdown(7)`. |
-| `path_restrict` | `file_open` | Blocks non-`CAP_SYS_ADMIN` processes from opening sensitive device files: `/dev/kvm`, `/dev/vhost-*`, `/dev/vfio/*`, etc. |
 | `setuid_restrict` | `path_chmod`, `inode_create`, `path_mknod` | Prevents non-root processes from creating or setting the setuid/setgid bit via `chmod(2)`, `open(2)`, or `mknod(2)`. |
 | `userns_restrict` | `userns_create` | Blocks unprivileged user namespace creation. Processes without `CAP_SYS_ADMIN` (or already inside a nested namespace) cannot call `unshare(CLONE_NEWUSER)` or `clone(CLONE_NEWUSER)`. |
 
