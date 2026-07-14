@@ -1,5 +1,4 @@
-PROGS := lockdown_enforce \
-	 setuid_restrict \
+PROGS := setuid_restrict \
 	 userns_restrict
 
 TARGETS	= load unload enable disable status test

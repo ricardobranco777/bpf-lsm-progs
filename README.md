@@ -5,9 +5,8 @@ BPF LSM programs for Linux security policy enforcement
 
 | Program | LSM hooks | Description |
 |---------|---------|-----------------|
-| `lockdown_enforce` | `locked_down` | Enforces kernel lockdown in a more granular way than `kernel_lockdown(7)`. |
-| `setuid_restrict` | `path_chmod`, `inode_create`, `path_mknod` | Prevents non-root processes from creating or setting the setuid/setgid bit via `chmod(2)`, `open(2)`, or `mknod(2)`. |
 | `userns_restrict` | `userns_create` | Blocks unprivileged user namespace creation. Processes without `CAP_SYS_ADMIN` (or already inside a nested namespace) cannot call `unshare(CLONE_NEWUSER)` or `clone(CLONE_NEWUSER)`. |
+| `setuid_restrict` | `path_chmod`, `inode_create`, `path_mknod` | Prevents non-root processes from creating or setting the setuid/setgid bit via `chmod(2)`, `open(2)`, or `mknod(2)`. |
 
 ### Requirements
 
@@ -89,8 +88,7 @@ make log-disable
 ```
 
 When on, each denied attempt is logged via `bpf_printk` with the
-process's pid and command name (plus context specific to the program,
-e.g. the blocked path or lockdown reason). Off by default. View with
+process's pid and command name. Off by default. View with
 `sudo cat /sys/kernel/tracing/trace_pipe` or `sudo bpftool prog tracelog`
 while it's enabled — nothing is captured unless something is actively
 reading the pipe at the time.

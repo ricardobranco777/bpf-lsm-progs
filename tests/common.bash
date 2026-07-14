@@ -27,21 +27,6 @@ check_eperm()
 	return 1
 }
 
-# open_path PATH
-# Sets $rc and $err for the caller to pass to check_eperm.
-open_path()
-{
-	local path=$1
-
-	[ -e "$path" ] || skip "$path not present"
-	err=$( { exec 3<"$path"; } 2>&1 ) && rc=0 || rc=$?
-	# Strip bash's own "script: line N: " diagnostic prefix.
-	if [[ $err =~ ^[^:]+:\ line\ [0-9]+:\ (.*)$ ]]; then
-		err=${BASH_REMATCH[1]}
-	fi
-	return 0
-}
-
 # skip_if_root REASON
 skip_if_root()
 {

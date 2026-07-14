@@ -5,6 +5,7 @@ MAPDIR    := /sys/fs/bpf/$(PROG)/maps
 MAPFILE   := $(MAPDIR)/enabled
 LOGFILE   := $(MAPDIR)/logging
 OBJ       := $(PROG).$(BPFTARGET).o
+SUDO      := sudo
 
 .PHONY: all clean load unload enable disable status log-enable log-disable test
 
@@ -21,8 +22,6 @@ $(PROG).$(BPFTARGET).o: $(PROG).bpf.c ../vmlinux.h ../common.bpf.h
 
 clean:
 	$(RM) $(PROG).*.o
-
-unload load enable disable status log-enable log-disable: SUDO := sudo
 
 load: $(OBJ)
 	$(SUDO) $(BPFTOOL) prog loadall $< /sys/fs/bpf/$(PROG) pinmaps $(MAPDIR) autoattach
@@ -60,8 +59,8 @@ log-disable:
 	$(SUDO) bpftool map update pinned $(LOGFILE) key 0 0 0 0 value 00
 
 test:
-	@if sudo test -d /sys/fs/bpf/$(PROG) 2>/dev/null; then \
-		$(SUDO) env LOADED=1 bats ../tests/$(PROG).bats; \
+	@if $(SUDO) test -d /sys/fs/bpf/$(PROG) 2>/dev/null; then \
+		env LOADED=1 bats ../tests/$(PROG).bats; \
 	else \
-		$(SUDO) bats ../tests/$(PROG).bats; \
+		bats ../tests/$(PROG).bats; \
 	fi
