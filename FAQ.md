@@ -12,11 +12,12 @@ See https://github.com/podman-container-tools/podman/issues/26578#issuecomment-3
 
 ---
 
-### Does userns_restrict break browser sandboxing (Firefox, Chromium)?
+### Does userns_restrict break browser sandboxing (Firefox, Chromium, Thunderbird)?
 
-Mostly Firefox.  Both Chrome & Firefox use unprivileged user namespaces if
-available, but only Chrome falls back to a setuid-root helper (`chrome-sandbox`)
-that creates namespaces on the browser's behalf.  Stock Chrome & Vivaldi ship it:
+Mostly Firefox and maybe Thunderbird.  Both Chrome & Firefox use unprivileged user
+namespaces if available, but only Chrome falls back to a setuid-root helper
+(`chrome-sandbox`) that creates namespaces on the browser's behalf.  Stock
+Chrome & Vivaldi ship it:
 
 ```
 $ find /opt -name \*sandbox -perm /06000
@@ -24,17 +25,30 @@ $ find /opt -name \*sandbox -perm /06000
 /opt/vivaldi/vivaldi-sandbox
 ```
 
-Check the browser's own diagnostics after loading this program rather than
-assuming graceful degradation. Firefox's `about:support` shows the active
+Thunderbird shares Firefox's Gecko/toolkit sandbox code and has no
+equivalent fallback, so it degrades the same way.
+
+Check the application's own diagnostics after loading this program rather
+than assuming graceful degradation. Firefox's `about:support` and
+Thunderbird's *Help → Troubleshooting Information* show the active
 sandbox level; Chromium's `chrome://sandbox` shows per-layer sandbox status.
 
 ![Firefox about:support showing "User Namespaces: false — This feature is not allowed by your system. This can restrict security features of Firefox."](images/firefox.png)
 
 ![Chromium chrome://sandbox showing Layer 1 Sandbox: SUID, reporting "You are adequately sandboxed."](images/chrome.png)
 
+![Thunderbird's Troubleshooting Information Sandbox section showing "User Namespaces for privileged processes: true" but "User Namespaces: false", with Content Process Sandboxing still true.](images/thunderbird.png)
+
 More information in:
 - https://wiki.mozilla.org/Security/Sandbox
 - https://chromium.googlesource.com/chromium/src.git/+/refs/heads/main/sandbox/linux
+- https://gitlab.tails.boum.org/tails/tails/-/issues/21334 (Thunderbird sandbox degraded the same way)
+
+---
+
+### Does userns_restrict break Flatpak apps?
+
+Maybe.  See https://github.com/flatpak/flatpak/wiki/User-namespace-requirements
 
 ---
 

@@ -29,5 +29,7 @@ Can be toggled off without unloading via `make disable` (see the top-level
 ### Bugs / Limitations
 
 - Breaks rootless containers for obvious reasons.
-- See the [FAQ](../FAQ.md#does-userns_restrict-break-browser-sandboxing-firefox-chromium)
-  for specifics on each browser's fallback behavior (or lack thereof).
+- See the [FAQ](../FAQ.md#does-userns_restrict-break-browser-sandboxing-firefox-chromium-thunderbird)
+  for specifics on each application's fallback behavior (or lack thereof).
+- Also affects Flatpak apps unless `bwrap` is installed setuid-root — see the
+  [FAQ](../FAQ.md#does-userns_restrict-break-flatpak-apps).
