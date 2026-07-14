@@ -1,0 +1,17 @@
+#!/bin/sh
+# SPDX-License-Identifier: (GPL-2.0-only OR BSD-2-Clause)
+PREREQ=""
+prereqs() { echo "$PREREQ"; }
+case "$1" in prereqs) prereqs; exit 0;; esac
+
+. /usr/share/initramfs-tools/hook-functions
+
+SRCDIR="/opt/bpf-lsm-progs"
+BPFTARGET="bpfel"	# match the BPFTARGET used to build (default: little-endian)
+
+copy_exec /usr/sbin/bpftool /sbin
+
+mkdir -p "${DESTDIR}${SRCDIR}"
+for p in setuid_restrict userns_restrict; do
+	cp "$SRCDIR/$p/$p.$BPFTARGET.o" "${DESTDIR}${SRCDIR}/$p.$BPFTARGET.o"
+done

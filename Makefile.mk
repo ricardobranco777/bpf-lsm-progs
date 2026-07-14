@@ -1,6 +1,8 @@
 BPFTOOL   ?= $(shell command -v bpftool 2>/dev/null || echo /usr/sbin/bpftool)
 CLANG     ?= clang
-BPFTARGET ?= bpfel
+# Detect endianness
+DEFAULT_BPFTARGET := $(shell [ "$$(printf '\1\2\3\4' | od -An -tx4 | tr -d ' ')" = "01020304" ] && echo bpfeb || echo bpfel)
+BPFTARGET ?= $(DEFAULT_BPFTARGET)
 OBJ       := $(PROG).$(BPFTARGET).o
 SUDO      := sudo
 

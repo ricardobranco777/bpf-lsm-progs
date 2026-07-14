@@ -1,0 +1,12 @@
+# SPDX-License-Identifier: (GPL-2.0-only OR BSD-2-Clause)
+# Sourced by the initramfs's ash-based init, not executed directly.
+
+run_hook() {
+	grep -q ' /sys/fs/bpf ' /proc/mounts || mount -t bpf bpf /sys/fs/bpf
+
+	local bpftarget=bpfel	# must match the bpftarget in install/bpf-lsm
+	local p
+	for p in setuid_restrict userns_restrict; do
+		bpftool prog loadall "/$p.$bpftarget.o" "/sys/fs/bpf/$p" autoattach
+	done
+}
