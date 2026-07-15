@@ -59,3 +59,17 @@ Yes. Use `make` for little-endian machines (x86_64, aarch64, ...) or
 `.o` file over.  No cross-compiler needed.
 
 The build doesn't need to match the target's kernel version either, just its byte order.
+
+---
+
+### Does Secure Boot / kernel lockdown prevent loading these programs?
+
+Only if `lockdown=confidentiality` is set.  These programs use
+`BPF_CORE_READ()`, which compiles to `bpf_probe_read_kernel()`,
+and that helper is gated by `LOCKDOWN_BPF_READ_KERNEL`.
+
+Check which level is active:
+
+```sh
+cat /sys/kernel/security/lockdown
+```
