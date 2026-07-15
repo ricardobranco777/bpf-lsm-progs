@@ -3,11 +3,10 @@ CLANG     ?= clang
 BPFTARGET ?= bpfel
 MAPDIR    := /sys/fs/bpf/$(PROG)/maps
 MAPFILE   := $(MAPDIR)/enabled
-LOGFILE   := $(MAPDIR)/logging
 OBJ       := $(PROG).$(BPFTARGET).o
 SUDO      := sudo
 
-.PHONY: all clean load unload enable disable status log-enable log-disable test
+.PHONY: all clean load unload enable disable status test
 
 all:	$(OBJ)
 
@@ -38,25 +37,11 @@ disable:
 status:
 	@if ! $(SUDO) test -d /sys/fs/bpf/$(PROG) 2>/dev/null; then \
 		echo "not loaded"; \
-		exit 0; \
-	fi; \
-	if $(SUDO) bpftool -j map dump pinned $(MAPFILE) 2>/dev/null | jq -e '.[0].value[0] != "0x00"' >/dev/null; then \
-		enabled=enabled; \
+	elif $(SUDO) bpftool -j map dump pinned $(MAPFILE) 2>/dev/null | jq -e '.[0].value[0] != "0x00"' >/dev/null; then \
+		echo "$(PROG): loaded, enabled"; \
 	else \
-		enabled=disabled; \
-	fi; \
-	if $(SUDO) bpftool -j map dump pinned $(LOGFILE) 2>/dev/null | jq -e '.[0].value[0] != "0x00"' >/dev/null; then \
-		logging=logging; \
-	else \
-		logging=not-logging; \
-	fi; \
-	echo "$(PROG): loaded, $$enabled, $$logging"
-
-log-enable:
-	$(SUDO) bpftool map update pinned $(LOGFILE) key 0 0 0 0 value 01
-
-log-disable:
-	$(SUDO) bpftool map update pinned $(LOGFILE) key 0 0 0 0 value 00
+		echo "$(PROG): loaded, disabled"; \
+	fi
 
 test:
 	@if $(SUDO) test -d /sys/fs/bpf/$(PROG) 2>/dev/null; then \
