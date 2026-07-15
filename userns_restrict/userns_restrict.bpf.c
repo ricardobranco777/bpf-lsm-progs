@@ -3,7 +3,6 @@
 #include <bpf/bpf_helpers.h>
 #include <bpf/bpf_core_read.h>
 #include <bpf/bpf_tracing.h>
-#include "common.bpf.h"
 
 #define CAP_SYS_ADMIN	21
 #define EPERM	1
@@ -15,8 +14,6 @@ int BPF_PROG(restrict_userns_create, struct cred *cred, int ret)
 {
 	if (ret != 0)
 		return ret;
-	if (!policy_enabled())
-		return 0;
 
 	kernel_cap_t cap_eff = BPF_CORE_READ(cred, cap_effective);
 	bool nested = BPF_CORE_READ(cred, user_ns, level) != 0;

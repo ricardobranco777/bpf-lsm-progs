@@ -1,7 +1,7 @@
 PROGS := setuid_restrict \
 	 userns_restrict
 
-TARGETS	= load unload enable disable status test
+TARGETS	= load unload test
 .PHONY: all clean $(TARGETS) $(PROGS)
 
 all:	$(PROGS)

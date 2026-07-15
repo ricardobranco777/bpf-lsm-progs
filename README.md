@@ -61,24 +61,6 @@ The restriction persists until unloaded or the system reboots.
 make unload
 ```
 
-### Enable / Disable
-
-```sh
-make disable
-make enable
-```
-
-Temporarily turns a program's enforcement on or off without unloading
-it. Takes effect immediately.
-
-### Status
-
-```sh
-make status
-```
-
-Reports whether the program is not loaded, or loaded and enabled/disabled.
-
 ### Test
 
 ```sh

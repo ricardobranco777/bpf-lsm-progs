@@ -14,8 +14,6 @@ without modifying the kernel.
 `lsm/userns_create` — fires on every `unshare(CLONE_NEWUSER)` and
 `clone(CLONE_NEWUSER)` call.  The hook denies if the caller's user namespace
 level is non-zero (nested namespace) or the caller lacks `CAP_SYS_ADMIN`.
-Can be toggled off without unloading via `make disable` (see the top-level
-[README](../README.md#enable--disable)).
 
 ### Alternatives
 

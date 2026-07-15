@@ -3,7 +3,6 @@
 #include <bpf/bpf_helpers.h>
 #include <bpf/bpf_core_read.h>
 #include <bpf/bpf_tracing.h>
-#include "common.bpf.h"
 
 #define EPERM	1
 #define S_ISUID	0004000
@@ -15,8 +14,6 @@ static __always_inline int deny_setuid_mode(umode_t mode, int ret)
 {
 	if (ret != 0)
 		return ret;
-	if (!policy_enabled())
-		return 0;
 	if (!(mode & (S_ISUID | S_ISGID)))
 		return 0;
 
