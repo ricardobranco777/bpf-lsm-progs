@@ -3,14 +3,16 @@
 
 load common
 
+if [ "${LOADED:-0}" = 1 ]; then mode="loaded"; else mode="unloaded"; fi
+
 setup() {
 	skip_if_root "policy exempts uid 0"
 }
 
 # chmod(S_ISUID) must be blocked (path_chmod hook)
-@test "chmod(S_ISUID) blocked for non-root" {
+@test "chmod(S_ISUID) as non-root ($mode)" {
 	local p
-	p=$(mktemp)
+	p=$(mktemp -p /var/tmp)
 	err=$(chmod 4755 "$p" 2>&1) && rc=0 || rc=$?
 	rm -f "$p"
 	check_eperm "$rc" "$err"
@@ -27,10 +29,10 @@ setup() {
 # chmod separately, a well-known TOCTOU-avoidance convention. That
 # scenario has no legitimate-tool trigger, and the two tests above already
 # exercise the shared deny_setuid_mode() logic.
-@test "mknod(S_ISUID FIFO) blocked for non-root" {
+@test "mknod(S_ISUID FIFO) as non-root ($mode)" {
 	command -v busybox >/dev/null 2>&1 || skip "busybox not present"
 	local p
-	p=$(mktemp -u)
+	p=$(mktemp -u -p /var/tmp)
 	err=$(busybox mknod -m 6644 "$p" p 2>&1) && rc=0 || rc=$?
 	rm -f "$p"
 	check_eperm "$rc" "$err"
