@@ -44,6 +44,8 @@ make BPFTARGET=bpfeb
 this is only needed to build for a big-endian target (s390x) from a
 little-endian machine, or vice versa.
 
+Tested on SLES 16.0 (s390x).
+
 ### Load
 
 ```sh
@@ -74,14 +76,6 @@ Tested on CachyOS (Arch, mkinitcpio), Debian 13 (initramfs-tools), and
 Fedora (dracut). Alpine's `mkinitfs` has no hook mechanism for this
 ([mkinitfs#18](https://gitlab.alpinelinux.org/alpine/mkinitfs/-/issues/18)
 is still open), so it isn't supported.
-
-Verify after a reboot:
-
-```sh
-bpftool prog list      # program present?
-bpftool link list      # link attached?
-make -C <prog> test    # actually enforced?
-```
 
 Undo with:
 
