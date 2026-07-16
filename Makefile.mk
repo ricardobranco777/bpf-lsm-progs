@@ -14,7 +14,7 @@ all:	$(OBJ)
 $(PROG).$(BPFTARGET).o: $(PROG).bpf.c ../vmlinux.h
 	$(CLANG) -target $(BPFTARGET) \
 		-Wall -Wextra -Wno-missing-declarations -Wno-unused-parameter \
-		-O2 -g -o $@ -c $<
+		-O2 -g -o $@ -c $< -I..
 	llvm-strip -g $@
 
 clean:
