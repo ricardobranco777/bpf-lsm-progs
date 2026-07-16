@@ -1,0 +1,14 @@
+# SPDX-License-Identifier: (GPL-2.0-only OR BSD-2-Clause)
+[Unit]
+Description=Load bpf-lsm-progs BPF LSM programs
+DefaultDependencies=no
+After=sysinit.target
+Before=initrd-switch-root.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/bpf-lsm-load.sh
+
+[Install]
+WantedBy=sysinit.target

@@ -1,0 +1,30 @@
+#!/bin/bash
+# SPDX-License-Identifier: (GPL-2.0-only OR BSD-2-Clause)
+
+build() {
+	local srcdir=/opt/bpf-lsm-progs
+	local bpftarget=bpfel	# match the BPFTARGET used to build
+	local p
+
+	add_binary bpftool
+	for p in setuid_restrict userns_restrict; do
+		add_file "$srcdir/$p/$p.$bpftarget.o" "/$p.$bpftarget.o"
+	done
+	add_runscript
+
+	# HOOKS=(... systemd ...) builds a systemd-based initramfs, which
+	# never runs the run_hook() above (a busybox-initramfs-only
+	# mechanism) -- wire up a real systemd service as well so this works
+	# either way. Harmless no-op on a busybox initramfs.
+	add_file /etc/initcpio/bpf-lsm-load.sh /bpf-lsm-load.sh 755
+	add_file /etc/initcpio/bpf-lsm.service /usr/lib/systemd/system/bpf-lsm.service
+	add_symlink /etc/systemd/system/sysinit.target.wants/bpf-lsm.service \
+		/usr/lib/systemd/system/bpf-lsm.service
+}
+
+help() {
+	cat <<HELPEOF
+This hook loads the bpf-lsm-progs BPF LSM programs.
+Requires the programs to already be built under /opt/bpf-lsm-progs.
+HELPEOF
+}

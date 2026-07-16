@@ -18,7 +18,7 @@ BPF LSM programs for Linux security policy enforcement
 - bpftool
 - clang
 - jq
-- libbpf-devel (libbpf-dev on Debian based systems)
+- libbpf-devel (libbpf-dev on Alpine & Debian based systems)
 - llvm
 - make
 
@@ -40,12 +40,9 @@ make
 make BPFTARGET=bpfeb
 ```
 
-Builds for big-endian systems (s390x, ppc64 non-LE, sparc64, ...)
-instead of the little-endian default, which covers x86_64, aarch64,
-riscv64, and most other machines. No extra toolchain needed — just
-copy the resulting `.o` file to the target. See the
-[FAQ](FAQ.md#can-i-build-these-on-one-machine-and-run-them-on-another-architecture)
-for more.
+`make` detects the build host's byte order and uses that by default, so
+this is only needed to build for a big-endian target (s390x) from a
+little-endian machine, or vice versa.
 
 ### Load
 
@@ -60,6 +57,40 @@ The restriction persists until unloaded or the system reboots.
 ```sh
 make unload
 ```
+
+### Boot-time loading
+
+```sh
+sudo make install
+```
+
+Builds the programs, installs them under `/opt/bpf-lsm-progs` (override
+with `TARGET=`), detects your initramfs generator (dracut, mkinitcpio, or
+initramfs-tools), installs the matching hook, and regenerates the
+initramfs so the programs load automatically on every boot, before the
+real init system starts.
+
+Tested on CachyOS (Arch, mkinitcpio), Debian 13 (initramfs-tools), and
+Fedora (dracut). Alpine's `mkinitfs` has no hook mechanism for this
+([mkinitfs#18](https://gitlab.alpinelinux.org/alpine/mkinitfs/-/issues/18)
+is still open), so it isn't supported.
+
+Verify after a reboot:
+
+```sh
+bpftool prog list      # program present?
+bpftool link list      # link attached?
+make -C <prog> test    # actually enforced?
+```
+
+Undo with:
+
+```sh
+sudo make uninstall
+```
+
+Removes the deployed objects and the installed hook, then regenerates
+the initramfs.
 
 ### Test
 
