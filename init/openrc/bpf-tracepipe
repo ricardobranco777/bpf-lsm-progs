@@ -1,0 +1,16 @@
+#!/sbin/openrc-run
+# SPDX-License-Identifier: BSD-2-Clause
+
+name="bpf-tracepipe"
+description="Forward BPF trace_pipe output to syslog"
+supervisor="supervise-daemon"
+command="/bin/sh"
+command_args="-c 'cat /sys/kernel/tracing/trace_pipe | logger -t bpf'"
+
+depend() {
+	need localmount
+}
+
+start_pre() {
+	mountpoint -q /sys/kernel/tracing || mount -t tracefs tracefs /sys/kernel/tracing
+}

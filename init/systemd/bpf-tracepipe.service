@@ -1,0 +1,16 @@
+# SPDX-License-Identifier: BSD-2-Clause
+[Unit]
+Description=Forward BPF trace_pipe output to journald
+After=systemd-journald.service
+Requires=systemd-journald.service
+StartLimitIntervalSec=60
+StartLimitBurst=5
+
+[Service]
+Type=simple
+ExecStart=/bin/sh -c 'cat /sys/kernel/tracing/trace_pipe | systemd-cat -t bpf -p info'
+Restart=always
+RestartSec=1
+
+[Install]
+WantedBy=multi-user.target

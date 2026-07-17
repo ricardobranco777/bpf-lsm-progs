@@ -18,7 +18,7 @@ BPF LSM programs for Linux security policy enforcement
 - bpftool
 - clang
 - jq
-- libbpf-devel (libbpf-dev on Alpine & Debian based systems)
+- libbpf-devel (libbpf-dev on Alpine & Debian based systems, bpf in Arch)
 - llvm
 - make
 
@@ -85,6 +85,34 @@ sudo make uninstall
 
 Removes the deployed objects and the installed hook, then regenerates
 the initramfs.
+
+### Logging
+
+Every denied attempt is logged via `bpf_printk` with the process's pid
+and command name (plus context specific to the program, e.g. the uid).
+This goes to the kernel's trace pipe, which nothing reads by default —
+install the `bpf-tracepipe` service to forward it to your log. It's a
+general-purpose forwarder, not specific to these programs, so it'll
+also carry `bpf_printk` output from anything else on the system using
+the trace pipe. To disable the logging entirely instead, build with
+`make LOGGING=0`.
+
+```sh
+sudo make -C init install
+```
+
+Detects your init system ([Dinit](https://github.com/davmac314/dinit),
+[OpenRC](https://wiki.gentoo.org/wiki/OpenRC),
+[Runit](https://smarden.org/runit/),
+[Systemd](https://systemd.io),
+[SysVinit](https://wiki.gentoo.org/wiki/Sysvinit))
+and installs the matching service. On systemd, view logs with
+`journalctl -t bpf -f`; the rest go to syslog via `logger -t bpf`.
+Undo with `sudo make -C init uninstall`.
+
+Alternative init systems tested on Artix Linux (Arch, btw).
+[S6](https://skarnet.org/software/s6-linux-init/)
+was excluded due to its complexity.
 
 ### Test
 

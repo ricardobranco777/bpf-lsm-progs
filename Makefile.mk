@@ -3,6 +3,7 @@ CLANG     ?= clang
 # Detect endianness
 DEFAULT_BPFTARGET := $(shell [ "$$(printf '\1\2\3\4' | od -An -tx4 | tr -d ' ')" = "01020304" ] && echo bpfeb || echo bpfel)
 BPFTARGET ?= $(DEFAULT_BPFTARGET)
+LOGGING   ?= 1
 OBJ       := $(PROG).$(BPFTARGET).o
 SUDO      := sudo
 
@@ -16,6 +17,7 @@ all:	$(OBJ)
 $(PROG).$(BPFTARGET).o: $(PROG).bpf.c ../vmlinux.h
 	$(CLANG) -target $(BPFTARGET) \
 		-Wall -Wextra -Wno-missing-declarations -Wno-unused-parameter \
+		-DLOGGING=$(LOGGING) \
 		-O2 -g -o $@ -c $< -I..
 	llvm-strip -g $@
 

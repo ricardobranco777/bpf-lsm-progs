@@ -1,0 +1,5 @@
+# SPDX-License-Identifier: BSD-2-Clause
+type = process
+command = /bin/sh -c "mountpoint -q /sys/kernel/tracing || mount -t tracefs tracefs /sys/kernel/tracing; cat /sys/kernel/tracing/trace_pipe | logger -t bpf"
+restart = true
+smooth-recovery = true

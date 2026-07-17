@@ -22,6 +22,13 @@ static __always_inline int deny_setuid_mode(umode_t mode, int ret)
 	if (uid == 0)
 		return 0;
 
+#if LOGGING
+	char comm[16];
+
+	bpf_get_current_comm(&comm, sizeof(comm));
+	bpf_printk("setuid_restrict: denied pid=%d comm=%s uid=%d",
+		   bpf_get_current_pid_tgid() >> 32, comm, uid);
+#endif
 	return -EPERM;
 }
 

@@ -1,0 +1,4 @@
+#!/bin/sh
+# SPDX-License-Identifier: BSD-2-Clause
+mountpoint -q /sys/kernel/tracing || mount -t tracefs tracefs /sys/kernel/tracing
+cat /sys/kernel/tracing/trace_pipe | exec logger -t bpf
