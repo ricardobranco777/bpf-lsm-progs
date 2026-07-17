@@ -1,5 +1,5 @@
 #!/bin/sh
-# SPDX-License-Identifier: (GPL-2.0-only OR BSD-2-Clause)
+# SPDX-License-Identifier: BSD-2-Clause
 
 BPFTARGET="bpfel"	# must match the BPFTARGET in module-setup.sh
 

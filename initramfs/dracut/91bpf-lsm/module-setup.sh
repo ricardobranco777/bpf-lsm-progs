@@ -1,5 +1,5 @@
 #!/bin/bash
-# SPDX-License-Identifier: (GPL-2.0-only OR BSD-2-Clause)
+# SPDX-License-Identifier: BSD-2-Clause
 # shellcheck disable=SC2154  # moddir: set by dracut before sourcing this file
 
 PROGS="setuid_restrict userns_restrict"

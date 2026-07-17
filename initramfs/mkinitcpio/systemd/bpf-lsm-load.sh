@@ -1,5 +1,5 @@
 #!/bin/sh
-# SPDX-License-Identifier: (GPL-2.0-only OR BSD-2-Clause)
+# SPDX-License-Identifier: BSD-2-Clause
 # ExecStart target for a systemd-based mkinitcpio initramfs
 # (HOOKS=(... systemd ...)). That mode never runs hooks/bpf-lsm's
 # run_hook() -- runtime hooks are a busybox-initramfs-only mechanism --
