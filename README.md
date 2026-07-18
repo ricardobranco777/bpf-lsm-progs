@@ -17,7 +17,6 @@ BPF LSM programs for Linux security policy enforcement
 
 - bpftool
 - clang
-- jq
 - libbpf-devel (libbpf-dev on Alpine & Debian based systems, bpf in Arch)
 - llvm
 - make
