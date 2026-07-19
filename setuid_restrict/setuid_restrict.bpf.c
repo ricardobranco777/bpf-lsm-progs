@@ -18,12 +18,13 @@ static __always_inline int deny_setuid_mode(umode_t mode, int ret)
 	if (!(mode & (S_ISUID | S_ISGID)))
 		return 0;
 
-	struct task_struct *task = bpf_get_current_task_btf();
-	uid_t uid = BPF_CORE_READ(task, cred, uid.val);
+	__u64 uid_gid = bpf_get_current_uid_gid();
+	uid_t uid = uid_gid;
+	gid_t gid = uid_gid >> 32;
 	if (uid == 0)
 		return 0;
 
-	log_denied("setuid_restrict", uid);
+	log_denied("setuid_restrict", uid, gid);
 	return -EPERM;
 }
 

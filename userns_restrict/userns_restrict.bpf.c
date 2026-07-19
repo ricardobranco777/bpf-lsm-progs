@@ -23,6 +23,7 @@ int BPF_PROG(restrict_userns_create, struct cred *cred, int ret)
 	if (!nested && privileged)
 		return 0;
 
-	log_denied("userns_restrict", BPF_CORE_READ(cred, uid.val));
+	log_denied("userns_restrict", BPF_CORE_READ(cred, uid.val),
+		   BPF_CORE_READ(cred, gid.val));
 	return -EPERM;
 }
