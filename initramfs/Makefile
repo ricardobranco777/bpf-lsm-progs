@@ -30,7 +30,7 @@ install-dracut:
 	$(SUDO) sed -i 's|^BPFTARGET=.*|BPFTARGET="$(BPFTARGET)"|' \
 		/usr/lib/dracut/modules.d/91bpf-lsm/bpf-lsm-load.sh
 	echo 'add_dracutmodules+=" bpf-lsm "' | $(SUDO) tee /etc/dracut.conf.d/bpf-lsm.conf >/dev/null
-	#$(SUDO) dracut -f
+	$(SUDO) dracut -vf
 
 install-mkinitcpio:
 	$(SUDO) install -m 755 mkinitcpio/install/bpf-lsm /etc/initcpio/install/bpf-lsm
