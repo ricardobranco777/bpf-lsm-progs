@@ -3,6 +3,7 @@
 #include <bpf/bpf_helpers.h>
 #include <bpf/bpf_core_read.h>
 #include <bpf/bpf_tracing.h>
+#include "common.bpf.h"
 
 #define CAP_SYS_ADMIN	21
 #define EPERM	1
@@ -22,12 +23,6 @@ int BPF_PROG(restrict_userns_create, struct cred *cred, int ret)
 	if (!nested && privileged)
 		return 0;
 
-#if LOGGING
-	char comm[16];
-
-	bpf_get_current_comm(&comm, sizeof(comm));
-	bpf_printk("userns_restrict: denied pid=%d comm=%s",
-		   bpf_get_current_pid_tgid() >> 32, comm);
-#endif
+	log_denied("userns_restrict", BPF_CORE_READ(cred, uid.val));
 	return -EPERM;
 }

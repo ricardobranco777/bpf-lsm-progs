@@ -14,7 +14,7 @@ all:	$(OBJ)
 ../vmlinux.h:
 	$(BPFTOOL) btf dump file /sys/kernel/btf/vmlinux format c > $@
 
-$(PROG).$(BPFTARGET).o: $(PROG).bpf.c ../vmlinux.h
+$(PROG).$(BPFTARGET).o: $(PROG).bpf.c ../vmlinux.h ../common.bpf.h
 	$(CLANG) -target $(BPFTARGET) \
 		-Wall -Wextra -Wno-missing-declarations -Wno-unused-parameter \
 		-DLOGGING=$(LOGGING) \
