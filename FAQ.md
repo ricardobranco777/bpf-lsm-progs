@@ -48,7 +48,10 @@ More information in:
 
 ### Does userns_restrict break Flatpak apps?
 
-Maybe.  See https://github.com/flatpak/flatpak/wiki/User-namespace-requirements
+Anything using
+[bubblewrap](https://github.com/containers/bubblewrap) may be broken unless installed setuid.
+
+See https://github.com/flatpak/flatpak/wiki/User-namespace-requirements
 
 ---
 
