@@ -37,3 +37,18 @@ setup() {
 	rm -f "$p"
 	check_eperm "$rc" "$err"
 }
+
+# chmod(S_ISGID) on a directory must be allowed (path_chmod hook exempts
+# directories from the S_ISGID check -- it only sets the group-inherit bit
+# for new entries, no privilege escalation).
+@test "chmod(S_ISGID) on a directory as non-root ($mode)" {
+	local d
+	d=$(mktemp -d -p /var/tmp)
+	err=$(chmod 2755 "$d" 2>&1) && rc=0 || rc=$?
+	if [ "$rc" = 0 ] && [ "$(stat -c '%a' "$d")" != 2755 ]; then
+		rc=1
+		err="chmod succeeded but did not retain S_ISGID"
+	fi
+	rmdir "$d"
+	check_allowed "$rc" "$err"
+}

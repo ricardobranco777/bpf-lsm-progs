@@ -27,6 +27,25 @@ check_eperm()
 	return 1
 }
 
+# check_allowed RC STDERR
+# Asserts the operation succeeded. Set LOADED=1 when the BPF program is
+# attached.
+check_allowed()
+{
+	local rc=$1 stderr=$2
+
+	if [ "$rc" = 0 ]; then
+		return 0
+	fi
+	# Without our module, a denial from another active LSM or plain DAC
+	# means we can't tell anything about our own policy either way.
+	if [ "${LOADED:-0}" != 1 ] &&
+	   [[ $stderr == *"Operation not permitted"* || $stderr == *"Permission denied"* ]]; then
+		skip "$stderr without module"
+	fi
+	return 1
+}
+
 # skip_if_root REASON
 skip_if_root()
 {

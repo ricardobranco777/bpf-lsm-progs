@@ -6,7 +6,7 @@ BPF LSM programs for Linux security policy enforcement
 | Program | LSM hooks | Description |
 |---------|---------|-----------------|
 | `userns_restrict` | `userns_create` | Blocks unprivileged user namespace creation. Processes without `CAP_SYS_ADMIN` (or already inside a nested namespace) cannot call `unshare(CLONE_NEWUSER)` or `clone(CLONE_NEWUSER)`. |
-| `setuid_restrict` | `path_chmod`, `inode_create`, `path_mknod` | Prevents non-root processes from creating or setting the setuid/setgid bit via `chmod(2)`, `open(2)`, or `mknod(2)`. |
+| `setuid_restrict` | `path_chmod`, `inode_create`, `path_mknod` | Prevents non-root processes from creating or setting the setuid bit, or the setgid bit on non-directories, via `chmod(2)`, `open(2)`, or `mknod(2)`. Setgid on a directory (group-inherit for new entries) is exempt. |
 
 ### Requirements
 
