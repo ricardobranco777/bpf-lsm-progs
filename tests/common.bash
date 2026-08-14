@@ -4,14 +4,15 @@
 
 export LC_ALL=C
 
-# check_eperm RC STDERR
-# Set LOADED=1 in the environment when the BPF program is attached.
-check_eperm()
+# check_denied RC STDERR EXPECTED
+# Asserts the operation was denied with EXPECTED in STDERR. Set LOADED=1 in
+# the environment when the BPF program is attached.
+check_denied()
 {
-	local rc=$1 stderr=$2
+	local rc=$1 stderr=$2 expected=$3
 
 	if [ "${LOADED:-0}" = 1 ]; then
-		[ "$rc" != 0 ] && [[ $stderr == *"Operation not permitted"* ]]
+		[ "$rc" != 0 ] && [[ $stderr == *"$expected"* ]]
 		return $?
 	fi
 
@@ -25,6 +26,24 @@ check_eperm()
 		skip "$stderr without module"
 	fi
 	return 1
+}
+
+# check_eperm RC STDERR
+check_eperm()
+{
+	check_denied "$1" "$2" "Operation not permitted"
+}
+
+# check_eafnosupport RC STDERR
+check_eafnosupport()
+{
+	check_denied "$1" "$2" "Address family not supported by protocol"
+}
+
+# check_enodev RC STDERR
+check_enodev()
+{
+	check_denied "$1" "$2" "No such device"
 }
 
 # check_allowed RC STDERR

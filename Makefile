@@ -1,4 +1,6 @@
-PROGS := setuid_restrict \
+PROGS := fs_mount_restrict \
+	 setuid_restrict \
+	 socket_create_restrict \
 	 userns_restrict
 
 TARGET    ?= /opt/bpf-lsm-progs
