@@ -14,44 +14,44 @@
  * create, so any unprivileged process (including root inside a container's
  * user namespace) can reach the underlying code.
  */
-#define AF_AX25		3	/* removed from mainline in 2026 (syzbot magnet); still shipped by most LTS/enterprise kernels */
 #define AF_APPLETALK	5	/* removed from mainline in 2026 for the same reason as AX.25 */
-#define AF_NETROM	6	/* amateur radio; removed alongside AX.25 */
-#define AF_X25		9	/* legacy WAN protocol, essentially unused today */
-#define AF_ROSE		11	/* amateur radio; CVE-2022-2318, CVE-2023-51782 (UAF); removed alongside AX.25 */
-#define AF_RDS		21	/* CVE-2010-3904 (local root via unchecked userspace address) */
-#define AF_IRDA		23	/* legacy infrared hardware, long unmaintained */
-#define AF_CAN		29	/* CVE-2021-3609 (CAN BCM UAF, local root); legitimate on automotive/industrial gateways only */
-#define AF_TIPC		30	/* CVE-2021-43267 (crypto heap overflow, local+remote) */
-#define AF_ISDN		34	/* legacy telephony hardware, essentially unused today */
-#define AF_PHONET	35	/* Nokia modem IPC, unused outside that hardware */
-#define AF_IEEE802154	36	/* niche embedded wireless, uncommon outside embedded/IoT */
+#define AF_AX25		3	/* removed from mainline in 2026 (syzbot magnet); still shipped by most LTS/enterprise kernels */
 #define AF_CAIF		37	/* Ericsson modem IPC, unused outside that hardware */
+#define AF_CAN		29	/* CVE-2021-3609 (CAN BCM UAF, local root); legitimate on automotive/industrial gateways only */
+#define AF_IEEE802154	36	/* niche embedded wireless, uncommon outside embedded/IoT */
+#define AF_IRDA		23	/* legacy infrared hardware, long unmaintained */
+#define AF_ISDN		34	/* legacy telephony hardware, essentially unused today */
+#define AF_NETROM	6	/* amateur radio; removed alongside AX.25 */
 #define AF_NFC		39	/* repeated UAF/OOB bugs in the LLCP layer */
+#define AF_PHONET	35	/* Nokia modem IPC, unused outside that hardware */
 #define AF_PPPOX	24	/* obscure legacy VPN (L2TP) and dial-up (PPPoE) protocols; blocks PPPoE too, not just L2TP */
+#define AF_RDS		21	/* CVE-2010-3904 (local root via unchecked userspace address) */
+#define AF_ROSE		11	/* amateur radio; CVE-2022-2318, CVE-2023-51782 (UAF); removed alongside AX.25 */
 #define AF_RXRPC	33	/* CVE-2026-31635 "DirtyDecrypt" (RxGK page-cache corruption); legitimate only for kAFS (AFS filesystem) clients */
+#define AF_TIPC		30	/* CVE-2021-43267 (crypto heap overflow, local+remote) */
+#define AF_X25		9	/* legacy WAN protocol, essentially unused today */
 
 char LICENSE[] SEC("license") = "Dual BSD/GPL";
 
 static __always_inline bool family_is_denied(int family)
 {
 	switch (family) {
-	case AF_AX25:
 	case AF_APPLETALK:
-	case AF_NETROM:
-	case AF_X25:
-	case AF_ROSE:
-	case AF_RDS:
-	case AF_IRDA:
-	case AF_CAN:
-	case AF_TIPC:
-	case AF_ISDN:
-	case AF_PHONET:
-	case AF_IEEE802154:
+	case AF_AX25:
 	case AF_CAIF:
+	case AF_CAN:
+	case AF_IEEE802154:
+	case AF_IRDA:
+	case AF_ISDN:
+	case AF_NETROM:
 	case AF_NFC:
+	case AF_PHONET:
 	case AF_PPPOX:
+	case AF_RDS:
+	case AF_ROSE:
 	case AF_RXRPC:
+	case AF_TIPC:
+	case AF_X25:
 		return true;
 	default:
 		return false;
