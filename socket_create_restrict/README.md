@@ -14,13 +14,18 @@ unprivileged process — including root inside a container's own user
 namespace — can reach the underlying protocol code. That code is rarely
 exercised in production and gets far less fuzzing/review than the core
 `AF_INET`/`AF_UNIX` paths, which is why it keeps surfacing local-root and
-DoS CVEs, e.g. `CVE-2010-3904` (RDS), `CVE-2021-3609` (CAN BCM UAF),
-`CVE-2021-43267` (TIPC crypto heap overflow), `CVE-2022-2318` /
-`CVE-2023-51782` (ROSE UAF), `CVE-2026-31635` "DirtyDecrypt" (RxGK
-page-cache corruption via `AF_RXRPC`), `CVE-2026-46026` /
-`CVE-2026-43491` (QRTR name-service DoS). Unlike a privilege check, this
-policy applies to root too — the whole point is to keep these code paths
-unreachable regardless of who's asking.
+DoS CVEs, e.g. [`CVE-2010-3904`](https://www.cve.org/CVERecord?id=CVE-2010-3904)
+(RDS), [`CVE-2021-3609`](https://www.cve.org/CVERecord?id=CVE-2021-3609)
+(CAN BCM UAF), [`CVE-2021-43267`](https://www.cve.org/CVERecord?id=CVE-2021-43267)
+(TIPC crypto heap overflow), [`CVE-2022-2318`](https://www.cve.org/CVERecord?id=CVE-2022-2318) /
+[`CVE-2023-51782`](https://www.cve.org/CVERecord?id=CVE-2023-51782) (ROSE UAF),
+[`CVE-2026-31635`](https://www.cve.org/CVERecord?id=CVE-2026-31635) "DirtyDecrypt"
+(RxGK page-cache corruption via `AF_RXRPC`),
+[`CVE-2026-46026`](https://www.cve.org/CVERecord?id=CVE-2026-46026) /
+[`CVE-2026-43491`](https://www.cve.org/CVERecord?id=CVE-2026-43491) (QRTR
+name-service DoS). Unlike a privilege check, this policy applies to root
+too — the whole point is to keep these code paths unreachable regardless
+of who's asking.
 
 In April 2026, upstream removed `AX.25`/`NET/ROM`/`ROSE` and `AppleTalk`
 from mainline entirely, citing exactly this pattern (syzbot bug magnet,
