@@ -53,6 +53,13 @@ check_denied_family()
 	check_denied_family 'socket.socket(socket.AF_TIPC, socket.SOCK_RDM)'
 }
 
+# QRTR name-service lookup can be driven into an unbounded walk (DoS,
+# CVE-2026-46026, CVE-2026-43491); creating a QIPCRTR socket needs no
+# capability.
+@test "socket(AF_QIPCRTR, SOCK_DGRAM) ($mode)" {
+	check_denied_family 'socket.socket(socket.AF_QIPCRTR, socket.SOCK_DGRAM)'
+}
+
 # Ordinary AF_INET sockets are unaffected (family not blacklisted).
 @test "socket(AF_INET, SOCK_STREAM) is unaffected ($mode)" {
 	err=$(socket_py 'socket.socket(socket.AF_INET, socket.SOCK_STREAM)') && rc=0 || rc=$?

@@ -25,6 +25,7 @@
 #define AF_NFC		39	/* repeated UAF/OOB bugs in the LLCP layer */
 #define AF_PHONET	35	/* Nokia modem IPC, unused outside that hardware */
 #define AF_PPPOX	24	/* obscure legacy VPN (L2TP) and dial-up (PPPoE) protocols; blocks PPPoE too, not just L2TP */
+#define AF_QIPCRTR	42	/* CVE-2026-46026, CVE-2026-43491 (QRTR name-service DoS); Qualcomm modem/DSP IPC, no general-purpose use */
 #define AF_RDS		21	/* CVE-2010-3904 (local root via unchecked userspace address) */
 #define AF_ROSE		11	/* amateur radio; CVE-2022-2318, CVE-2023-51782 (UAF); removed alongside AX.25 */
 #define AF_RXRPC	33	/* CVE-2026-31635 "DirtyDecrypt" (RxGK page-cache corruption); legitimate only for kAFS (AFS filesystem) clients */
@@ -47,6 +48,7 @@ static __always_inline bool family_is_denied(int family)
 	case AF_NFC:
 	case AF_PHONET:
 	case AF_PPPOX:
+	case AF_QIPCRTR:
 	case AF_RDS:
 	case AF_ROSE:
 	case AF_RXRPC:
