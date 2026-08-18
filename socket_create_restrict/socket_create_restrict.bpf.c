@@ -29,6 +29,7 @@
 #define AF_CAIF		37	/* Ericsson modem IPC, unused outside that hardware */
 #define AF_NFC		39	/* repeated UAF/OOB bugs in the LLCP layer */
 #define AF_PPPOX	24	/* obscure legacy VPN (L2TP) and dial-up (PPPoE) protocols; blocks PPPoE too, not just L2TP */
+#define AF_RXRPC	33	/* CVE-2026-31635 "DirtyDecrypt" (RxGK page-cache corruption); legitimate only for kAFS (AFS filesystem) clients */
 
 char LICENSE[] SEC("license") = "Dual BSD/GPL";
 
@@ -50,6 +51,7 @@ static __always_inline bool family_is_denied(int family)
 	case AF_CAIF:
 	case AF_NFC:
 	case AF_PPPOX:
+	case AF_RXRPC:
 		return true;
 	default:
 		return false;
