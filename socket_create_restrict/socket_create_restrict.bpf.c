@@ -6,6 +6,10 @@
 #include "common.bpf.h"
 
 #define EAFNOSUPPORT	97
+#define EPROTONOSUPPORT	93
+
+#define AF_INET		2
+#define AF_INET6	10
 
 /*
  * Legacy/niche protocol families with a track record of locally-triggerable
@@ -32,7 +36,49 @@
 #define AF_TIPC		30	/* CVE-2021-43267 (crypto heap overflow, local+remote) */
 #define AF_X25		9	/* legacy WAN protocol, essentially unused today */
 
-char LICENSE[] SEC("license") = "Dual BSD/GPL";
+/*
+ * IP-layer protocols with a track record of local-root/DoS memory-safety
+ * bugs and no legitimate use on general-purpose servers, desktops, or
+ * containers. As with the address families above, creating any of these
+ * needs no capability (they're SOCK_STREAM/SOCK_DGRAM/SOCK_SEQPACKET, not
+ * SOCK_RAW), so any unprivileged process can reach them directly. Already
+ * available as enum constants from vmlinux.h, so no #define needed here:
+ *
+ * IPPROTO_DCCP    - CVE-2017-6074 (double-free, public local-root exploit);
+ *                   CVE-2020-16119 (dccp_disconnect() UAF). DCCP itself sees
+ *                   essentially no real-world use.
+ * IPPROTO_L2TP    - CVE-2016-10200 (l2tp_ip/l2tp_ip6 race UAF, local root).
+ *                   This is the raw L2TPv3-over-IP encapsulation socket, not
+ *                   the common L2TP/IPsec VPN path (which runs over UDP and
+ *                   is unaffected).
+ * IPPROTO_MPTCP   - CVE-2026-46170 (double-free in subflow/address
+ *                   cleanup); CVE-2026-80586 (remote DSS corruption, CVSS
+ *                   9.8). Actively-developed code still turning up bugs
+ *                   under fuzzing.
+ * IPPROTO_SCTP    - CVE-2026-64564 "SCTPhantom" (18-year-old ASCONF
+ *                   use-after-free, local root + container escape).
+ *                   Telecom signaling protocol, essentially no
+ *                   general-purpose use.
+ * IPPROTO_UDPLITE - CVE-2026-43164 (NULL-ptr-deref via shared udp_mem
+ *                   accounting). Saw so little real-world adoption that
+ *                   upstream is removing it entirely in Linux 7.1.
+ */
+static __always_inline bool protocol_is_denied(int family, int protocol)
+{
+	if (family != AF_INET && family != AF_INET6)
+		return false;
+
+	switch (protocol) {
+	case IPPROTO_DCCP:
+	case IPPROTO_L2TP:
+	case IPPROTO_MPTCP:
+	case IPPROTO_SCTP:
+	case IPPROTO_UDPLITE:
+		return true;
+	default:
+		return false;
+	}
+}
 
 static __always_inline bool family_is_denied(int family)
 {
@@ -60,6 +106,15 @@ static __always_inline bool family_is_denied(int family)
 	}
 }
 
+static __always_inline void log_deny(void)
+{
+	__u64 uid_gid = bpf_get_current_uid_gid();
+
+	log_denied("socket_create_restrict", (uid_t)uid_gid, (gid_t)(uid_gid >> 32));
+}
+
+char LICENSE[] SEC("license") = "Dual BSD/GPL";
+
 /*
  * kern=1 is kernel-internal socket creation (e.g. NFS/RPC transports), never
  * user-triggered; always allow it regardless of family.
@@ -71,10 +126,15 @@ int BPF_PROG(socket_create_restrict, int family, int type, int protocol,
 	if (ret != 0 || kern)
 		return ret;
 
-	if (!family_is_denied(family))
-		return 0;
+	if (family_is_denied(family)) {
+		log_deny();
+		return -EAFNOSUPPORT;
+	}
 
-	__u64 uid_gid = bpf_get_current_uid_gid();
-	log_denied("socket_create_restrict", (uid_t)uid_gid, (gid_t)(uid_gid >> 32));
-	return -EAFNOSUPPORT;
+	if (protocol_is_denied(family, protocol)) {
+		log_deny();
+		return -EPROTONOSUPPORT;
+	}
+
+	return 0;
 }

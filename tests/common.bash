@@ -40,6 +40,12 @@ check_eafnosupport()
 	check_denied "$1" "$2" "Address family not supported by protocol"
 }
 
+# check_eprotonosupport RC STDERR
+check_eprotonosupport()
+{
+	check_denied "$1" "$2" "Protocol not supported"
+}
+
 # check_enodev RC STDERR
 check_enodev()
 {
