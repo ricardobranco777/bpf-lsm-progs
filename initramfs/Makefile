@@ -1,5 +1,7 @@
 TARGET    ?= /opt/bpf-lsm-progs
-BPFTARGET ?= bpfel
+# Detect endianness
+DEFAULT_BPFTARGET := $(shell [ "$$(printf '\1\2\3\4' | od -An -tx4 | tr -d ' ')" = "01020304" ] && echo bpfeb || echo bpfel)
+BPFTARGET ?= $(DEFAULT_BPFTARGET)
 SUDO      ?= sudo
 
 .PHONY: install install-dracut install-mkinitcpio install-initramfs-tools \
