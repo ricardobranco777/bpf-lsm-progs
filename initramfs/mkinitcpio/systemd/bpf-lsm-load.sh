@@ -9,6 +9,6 @@ bpftarget=bpfel	# must match the bpftarget in install/bpf-lsm
 
 grep -q ' /sys/fs/bpf ' /proc/mounts || mount -t bpf bpf /sys/fs/bpf
 
-for p in setuid_restrict userns_restrict; do
+for p in fs_mount_restrict setuid_restrict socket_create_restrict userns_restrict; do
 	bpftool prog loadall "/$p.$bpftarget.o" "/sys/fs/bpf/$p" autoattach
 done

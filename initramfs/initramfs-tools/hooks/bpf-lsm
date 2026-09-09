@@ -12,6 +12,6 @@ BPFTARGET="bpfel"	# match the BPFTARGET used to build (default: little-endian)
 copy_exec /usr/sbin/bpftool /sbin
 
 mkdir -p "${DESTDIR}${SRCDIR}"
-for p in setuid_restrict userns_restrict; do
+for p in fs_mount_restrict setuid_restrict socket_create_restrict userns_restrict; do
 	cp "$SRCDIR/$p/$p.$BPFTARGET.o" "${DESTDIR}${SRCDIR}/$p.$BPFTARGET.o"
 done

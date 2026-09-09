@@ -7,7 +7,7 @@ build() {
 	local p
 
 	add_binary bpftool
-	for p in setuid_restrict userns_restrict; do
+	for p in fs_mount_restrict setuid_restrict socket_create_restrict userns_restrict; do
 		add_file "$srcdir/$p/$p.$bpftarget.o" "/$p.$bpftarget.o"
 	done
 	add_runscript

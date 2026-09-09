@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: BSD-2-Clause
 # shellcheck disable=SC2154  # moddir: set by dracut before sourcing this file
 
-PROGS="setuid_restrict userns_restrict"
+PROGS="fs_mount_restrict setuid_restrict socket_create_restrict userns_restrict"
 SRCDIR="/opt/bpf-lsm-progs"
 BPFTARGET="bpfel"	# match the BPFTARGET used to build (default: little-endian)
 

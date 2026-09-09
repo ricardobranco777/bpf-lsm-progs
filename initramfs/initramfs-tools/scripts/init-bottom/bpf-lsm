@@ -11,6 +11,6 @@ grep -q ' /sys/fs/bpf ' /proc/mounts || mount -t bpf bpf /sys/fs/bpf
 SRCDIR="/opt/bpf-lsm-progs"	# must match the SRCDIR in hooks/bpf-lsm
 BPFTARGET="bpfel"	# must match the BPFTARGET in hooks/bpf-lsm
 
-for p in setuid_restrict userns_restrict; do
+for p in fs_mount_restrict setuid_restrict socket_create_restrict userns_restrict; do
 	/sbin/bpftool prog loadall "$SRCDIR/$p.$BPFTARGET.o" "/sys/fs/bpf/$p" autoattach
 done
