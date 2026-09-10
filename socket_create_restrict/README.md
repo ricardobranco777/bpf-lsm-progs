@@ -9,7 +9,8 @@ desktops, or containers:
 Address families: `AF_AX25`, `AF_APPLETALK`, `AF_NETROM`, `AF_X25`,
 `AF_ROSE`, `AF_RDS`, `AF_IRDA`, `AF_CAN`, `AF_TIPC`, `AF_ISDN`,
 `AF_PHONET`, `AF_IEEE802154`, `AF_CAIF`, `AF_NFC`, `AF_PPPOX`,
-`AF_RXRPC`, `AF_QIPCRTR`.
+`AF_RXRPC`, `AF_QIPCRTR`, `AF_ALG`, `AF_ATMPVC`, `AF_ATMSVC`, `AF_IUCV`,
+`AF_KCM`, `AF_KEY`, `AF_MCTP`, `AF_MPLS`, `AF_SMC`.
 
 Protocols (within `AF_INET`/`AF_INET6`): `IPPROTO_DCCP`, `IPPROTO_L2TP`,
 `IPPROTO_SCTP`, `IPPROTO_UDPLITE`, `IPPROTO_MPTCP`.
@@ -28,9 +29,26 @@ DoS CVEs, e.g. [`CVE-2010-3904`](https://www.cve.org/CVERecord?id=CVE-2010-3904)
 (RxGK page-cache corruption via `AF_RXRPC`),
 [`CVE-2026-46026`](https://www.cve.org/CVERecord?id=CVE-2026-46026) /
 [`CVE-2026-43491`](https://www.cve.org/CVERecord?id=CVE-2026-43491) (QRTR
-name-service DoS). Unlike a privilege check, this policy applies to root
-too — the whole point is to keep these code paths unreachable regardless
-of who's asking.
+name-service DoS),
+[`CVE-2026-43043`](https://www.cve.org/CVERecord?id=CVE-2026-43043) /
+[`CVE-2026-43078`](https://www.cve.org/CVERecord?id=CVE-2026-43078) (AF_ALG
+NULL deref and page-reassignment overflow),
+[`CVE-2026-43050`](https://www.cve.org/CVERecord?id=CVE-2026-43050) /
+[`CVE-2026-72297`](https://www.cve.org/CVERecord?id=CVE-2026-72297) /
+[`CVE-2026-74689`](https://www.cve.org/CVERecord?id=CVE-2026-74689) (ATM UAF
+and out-of-bounds bugs), and
+[`CVE-2026-64004`](https://www.cve.org/CVERecord?id=CVE-2026-64004) /
+[`CVE-2026-68140`](https://www.cve.org/CVERecord?id=CVE-2026-68140) /
+[`CVE-2026-68141`](https://www.cve.org/CVERecord?id=CVE-2026-68141) /
+[`CVE-2026-68397`](https://www.cve.org/CVERecord?id=CVE-2026-68397) (IUCV
+locking bugs and a use-after-free), and
+[`CVE-2026-43244`](https://www.cve.org/CVERecord?id=CVE-2026-43244) /
+[`CVE-2026-74262`](https://www.cve.org/CVERecord?id=CVE-2026-74262) (KCM).
+`AF_KEY`, `AF_MCTP`, and `AF_MPLS` round out the list on the same
+rationale even without a 2026 CVE headlining them: no capability needed
+to create and essentially no general-purpose use. Unlike a privilege
+check, this policy applies to root too — the whole point is to keep
+these code paths unreachable regardless of who's asking.
 
 In April 2026, upstream removed `AX.25`/`NET/ROM`/`ROSE` and `AppleTalk`
 from mainline entirely, citing exactly this pattern (syzbot bug magnet,
@@ -78,15 +96,19 @@ transports) is always allowed.
   workload has a legitimate need for one of these families (e.g. `AF_CAN`
   on an automotive/industrial gateway, `AF_NFC` for a smart-card reader,
   `AF_RXRPC` for kAFS/AFS filesystem clients, `AF_QIPCRTR` on a device
-  with a Qualcomm modem/DSP) or protocols (e.g. `IPPROTO_SCTP` for
+  with a Qualcomm modem/DSP, `AF_IUCV`/`AF_SMC` on an s390 mainframe host,
+  `AF_ALG` for `cryptsetup`/`dm-crypt` kernel-crypto acceleration, or
+  `AF_KEY` for legacy `racoon`/`setkey` IPsec key management) or protocols
+  (e.g. `IPPROTO_SCTP` for
   telecom signaling, `IPPROTO_L2TP` for L2TPv3 pseudowires, `IPPROTO_MPTCP`
   for multipath-aware clients), remove it from the relevant list and
   rebuild.
-- `AF_BLUETOOTH`, `AF_PACKET`, and `AF_NETLINK` are intentionally not
-  included: they have real CVE history too, but also real, common
-  legitimate use (Bluetooth stacks, DHCP clients, `NetworkManager`/
-  `systemd-networkd`/`udev`), so blocking them needs to be scoped by
-  caller rather than denied outright.
+- `AF_BLUETOOTH`, `AF_PACKET`, `AF_NETLINK`, `AF_XDP`, `AF_UNIX`, and
+  `AF_VSOCK` are intentionally not included: they have real CVE history
+  too, but also real, common legitimate use (Bluetooth stacks, DHCP
+  clients, `NetworkManager`/`systemd-networkd`/`udev`, high-performance
+  packet processing, core IPC, VM/container host-guest communication), so
+  blocking them needs to be scoped by caller rather than denied outright.
 - The protocol blacklist only catches sockets that *explicitly* request
   one of these `IPPROTO_*` values. It doesn't stop MPTCP negotiated
   transparently on top of an ordinary `IPPROTO_TCP` socket via the
