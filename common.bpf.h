@@ -22,23 +22,4 @@ static __always_inline void sanitize_comm(char *comm, unsigned int len)
 }
 #endif
 
-static __always_inline void log_denied(const char *prog, uid_t uid, gid_t gid)
-{
-#if LOGGING
-	char comm[16], pcomm[16];
-	struct task_struct *task = bpf_get_current_task_btf();
-	pid_t ppid = BPF_CORE_READ(task, real_parent, tgid);
-
-	bpf_get_current_comm(&comm, sizeof(comm));
-	BPF_CORE_READ_STR_INTO(&pcomm, task, real_parent, comm);
-	sanitize_comm(comm, sizeof(comm));
-	sanitize_comm(pcomm, sizeof(pcomm));
-
-	/* Keep comm & pcomm last so they can't spoof previous fields. */
-	bpf_printk("%s: denied pid=%d uid=%d gid=%d ppid=%d cgroup=%llu pcomm=%s comm=%s",
-		   prog, bpf_get_current_pid_tgid() >> 32, uid, gid, ppid,
-		   bpf_get_current_cgroup_id(), pcomm, comm);
-#endif
-}
-
 #endif

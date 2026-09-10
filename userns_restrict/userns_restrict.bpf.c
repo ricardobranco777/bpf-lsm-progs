@@ -10,6 +10,27 @@
 
 char LICENSE[] SEC("license") = "Dual BSD/GPL";
 
+static __always_inline void log_deny(uid_t uid, gid_t gid, bool nested,
+				      bool privileged)
+{
+#if LOGGING
+	struct task_struct *task = bpf_get_current_task_btf();
+	pid_t ppid = BPF_CORE_READ(task, real_parent, tgid);
+	char comm[16], pcomm[16];
+
+	bpf_get_current_comm(&comm, sizeof(comm));
+	BPF_CORE_READ_STR_INTO(&pcomm, task, real_parent, comm);
+	sanitize_comm(comm, sizeof(comm));
+	sanitize_comm(pcomm, sizeof(pcomm));
+
+	/* Keep comm & pcomm last so they can't spoof previous fields. */
+	bpf_printk("userns_restrict: denied nested=%d privileged=%d "
+		   "pid=%d uid=%d gid=%d ppid=%d cgroup=%llu pcomm=%s comm=%s",
+		   nested, privileged, bpf_get_current_pid_tgid() >> 32,
+		   uid, gid, ppid, bpf_get_current_cgroup_id(), pcomm, comm);
+#endif
+}
+
 SEC("lsm/userns_create")
 int BPF_PROG(restrict_userns_create, struct cred *cred, int ret)
 {
@@ -23,7 +44,7 @@ int BPF_PROG(restrict_userns_create, struct cred *cred, int ret)
 	if (!nested && privileged)
 		return 0;
 
-	log_denied("userns_restrict", BPF_CORE_READ(cred, uid.val),
-		   BPF_CORE_READ(cred, gid.val));
+	log_deny(BPF_CORE_READ(cred, uid.val), BPF_CORE_READ(cred, gid.val),
+		 nested, privileged);
 	return -EPERM;
 }

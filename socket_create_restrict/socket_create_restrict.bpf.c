@@ -106,11 +106,27 @@ static __always_inline bool family_is_denied(int family)
 	}
 }
 
-static __always_inline void log_deny(void)
+static __always_inline void log_deny(int family, int type, int protocol)
 {
+#if LOGGING
 	__u64 uid_gid = bpf_get_current_uid_gid();
+	uid_t uid = uid_gid;
+	gid_t gid = uid_gid >> 32;
+	struct task_struct *task = bpf_get_current_task_btf();
+	pid_t ppid = BPF_CORE_READ(task, real_parent, tgid);
+	char comm[16], pcomm[16];
 
-	log_denied("socket_create_restrict", (uid_t)uid_gid, (gid_t)(uid_gid >> 32));
+	bpf_get_current_comm(&comm, sizeof(comm));
+	BPF_CORE_READ_STR_INTO(&pcomm, task, real_parent, comm);
+	sanitize_comm(comm, sizeof(comm));
+	sanitize_comm(pcomm, sizeof(pcomm));
+
+	/* Keep comm & pcomm last so they can't spoof previous fields. */
+	bpf_printk("socket_create_restrict: denied family=%d type=%d protocol=%d "
+		   "pid=%d uid=%d gid=%d ppid=%d cgroup=%llu pcomm=%s comm=%s",
+		   family, type, protocol, bpf_get_current_pid_tgid() >> 32,
+		   uid, gid, ppid, bpf_get_current_cgroup_id(), pcomm, comm);
+#endif
 }
 
 char LICENSE[] SEC("license") = "Dual BSD/GPL";
@@ -127,12 +143,12 @@ int BPF_PROG(socket_create_restrict, int family, int type, int protocol,
 		return ret;
 
 	if (family_is_denied(family)) {
-		log_deny();
+		log_deny(family, type, protocol);
 		return -EAFNOSUPPORT;
 	}
 
 	if (protocol_is_denied(family, protocol)) {
-		log_deny();
+		log_deny(family, type, protocol);
 		return -EPROTONOSUPPORT;
 	}
 

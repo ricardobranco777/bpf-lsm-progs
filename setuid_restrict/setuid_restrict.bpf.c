@@ -13,7 +13,29 @@
 
 char LICENSE[] SEC("license") = "Dual BSD/GPL";
 
-static __always_inline int deny_setuid_mode(umode_t mode, bool is_dir, int ret)
+static __always_inline void log_deny(const char *prog, uid_t uid, gid_t gid,
+				      umode_t mode, bool is_dir)
+{
+#if LOGGING
+	struct task_struct *task = bpf_get_current_task_btf();
+	pid_t ppid = BPF_CORE_READ(task, real_parent, tgid);
+	char comm[16], pcomm[16];
+
+	bpf_get_current_comm(&comm, sizeof(comm));
+	BPF_CORE_READ_STR_INTO(&pcomm, task, real_parent, comm);
+	sanitize_comm(comm, sizeof(comm));
+	sanitize_comm(pcomm, sizeof(pcomm));
+
+	/* Keep comm & pcomm last so they can't spoof previous fields. */
+	bpf_printk("%s: denied mode=%x dir=%d "
+		   "pid=%d uid=%d gid=%d ppid=%d cgroup=%llu pcomm=%s comm=%s",
+		   prog, mode, is_dir, bpf_get_current_pid_tgid() >> 32,
+		   uid, gid, ppid, bpf_get_current_cgroup_id(), pcomm, comm);
+#endif
+}
+
+static __always_inline int deny_setuid_mode(const char *prog, umode_t mode,
+					     bool is_dir, int ret)
 {
 	if (ret != 0)
 		return ret;
@@ -28,7 +50,7 @@ static __always_inline int deny_setuid_mode(umode_t mode, bool is_dir, int ret)
 	if (uid == 0)
 		return 0;
 
-	log_denied("setuid_restrict", uid, gid);
+	log_deny(prog, uid, gid, mode, is_dir);
 	return -EPERM;
 }
 
@@ -42,7 +64,8 @@ int BPF_PROG(setuid_restrict, const struct path *path, umode_t mode, int ret)
 {
 	umode_t imode = BPF_CORE_READ(path, dentry, d_inode, i_mode);
 
-	return deny_setuid_mode(mode, (imode & S_IFMT) == S_IFDIR, ret);
+	return deny_setuid_mode("setuid_restrict.chmod", mode,
+				 (imode & S_IFMT) == S_IFDIR, ret);
 }
 
 /*
@@ -53,7 +76,7 @@ SEC("lsm/inode_create")
 int BPF_PROG(setuid_restrict_create, struct inode *dir, struct dentry *dentry,
 	     umode_t mode, int ret)
 {
-	return deny_setuid_mode(mode, false, ret);
+	return deny_setuid_mode("setuid_restrict.create", mode, false, ret);
 }
 
 /*
@@ -64,5 +87,5 @@ SEC("lsm/path_mknod")
 int BPF_PROG(setuid_restrict_mknod, const struct path *dir,
 	     struct dentry *dentry, umode_t mode, unsigned int dev, int ret)
 {
-	return deny_setuid_mode(mode, false, ret);
+	return deny_setuid_mode("setuid_restrict.mknod", mode, false, ret);
 }

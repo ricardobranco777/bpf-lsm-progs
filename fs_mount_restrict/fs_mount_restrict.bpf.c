@@ -35,6 +35,29 @@ static __always_inline bool fstype_is_denied(const char *buf)
 	return false;
 }
 
+static __always_inline void log_deny(const char *fstype)
+{
+#if LOGGING
+	__u64 uid_gid = bpf_get_current_uid_gid();
+	uid_t uid = uid_gid;
+	gid_t gid = uid_gid >> 32;
+	struct task_struct *task = bpf_get_current_task_btf();
+	pid_t ppid = BPF_CORE_READ(task, real_parent, tgid);
+	char comm[16], pcomm[16];
+
+	bpf_get_current_comm(&comm, sizeof(comm));
+	BPF_CORE_READ_STR_INTO(&pcomm, task, real_parent, comm);
+	sanitize_comm(comm, sizeof(comm));
+	sanitize_comm(pcomm, sizeof(pcomm));
+
+	/* Keep comm & pcomm last so they can't spoof previous fields. */
+	bpf_printk("fs_mount_restrict: denied fstype=%s "
+		   "pid=%d uid=%d gid=%d ppid=%d cgroup=%llu pcomm=%s comm=%s",
+		   fstype, bpf_get_current_pid_tgid() >> 32,
+		   uid, gid, ppid, bpf_get_current_cgroup_id(), pcomm, comm);
+#endif
+}
+
 /*
  * type is NULL for bind mounts and remounts (no filesystem type given) --
  * nothing to check there.
@@ -53,7 +76,6 @@ int BPF_PROG(fs_mount_restrict, const char *dev_name, struct path *path,
 	if (!fstype_is_denied(buf))
 		return 0;
 
-	__u64 uid_gid = bpf_get_current_uid_gid();
-	log_denied("fs_mount_restrict", (uid_t)uid_gid, (gid_t)(uid_gid >> 32));
+	log_deny(buf);
 	return -ENODEV;
 }
