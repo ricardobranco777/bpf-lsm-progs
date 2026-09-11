@@ -1,0 +1,89 @@
+name: packaging
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  rpm:
+    runs-on: ubuntu-latest
+    container: fedora:latest
+    steps:
+      - name: Install build dependencies
+        run: dnf install -y bpftool clang git libbpf-devel llvm make rpm-build
+
+      - uses: actions/checkout@v4
+
+      - name: Trust the checked-out tree (running as root in the container)
+        run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
+
+      - name: Build RPM
+        run: make rpm
+
+      - name: List package contents
+        # A real install would run %post (dracut/systemd activation), which
+        # needs a full target system -- not available in a minimal
+        # container. Just confirm the package is well-formed here.
+        run: rpm -qlp dist/*.rpm
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: rpm-package
+          path: dist/*.rpm
+
+  deb:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential clang debhelper dpkg-dev fakeroot libbpf-dev llvm
+
+      - name: Install bpftool
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          url=$(curl -fsSL -H "Authorization: Bearer $GH_TOKEN" \
+              https://api.github.com/repos/libbpf/bpftool/releases/latest \
+            | jq -r '.assets[].browser_download_url | select(test("bpftool-v[0-9.]+-amd64\\.tar\\.gz$"))')
+          curl -fsSL "$url" | sudo tar -C /usr/local/bin -xz bpftool
+          sudo chmod +x /usr/local/bin/bpftool
+          bpftool version
+
+      - name: Build .deb
+        run: make deb
+
+      - name: List package contents
+        # A real install would run postinst (dracut/systemd activation),
+        # which needs a full target system, not a routine CI check. Just
+        # confirm the package is well-formed here.
+        run: dpkg -c dist/bpf-lsm-progs_*.deb
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: deb-package
+          path: dist/bpf-lsm-progs_*.deb
+
+  release:
+    needs: [rpm, deb]
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: '*-package'
+
+      - name: Create release and upload packages
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          tag="${GITHUB_REF#refs/tags/}"
+          gh release create "$tag" --repo "$GITHUB_REPOSITORY" --generate-notes \
+            rpm-package/*.rpm deb-package/*.deb

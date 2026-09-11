@@ -1,0 +1,27 @@
+#!/usr/bin/make -f
+
+%:
+	dh $@
+
+# BPF bytecode is a virtual ISA -- the only per-machine variable is byte
+# order, not CPU architecture. Build both bpfel and bpfeb (Architecture:
+# all in debian/control) and let the install-time hook scripts, which
+# already auto-detect the target's byte order, pick the right one.
+override_dh_auto_build:
+	$(MAKE)
+	$(MAKE) BPFTARGET=bpfeb
+
+override_dh_auto_test:
+	# BPF LSM tests need a live kernel with matching CONFIG_BPF_LSM/lsm=
+	# support and root; not available in a package build chroot.
+
+override_dh_auto_install:
+	set -e; \
+	for p in fs_mount_restrict setuid_restrict socket_create_restrict userns_restrict; do \
+		for bpftarget in bpfel bpfeb; do \
+			install -D -m 0644 "$$p/$$p.$$bpftarget.o" \
+				"debian/bpf-lsm-progs/opt/bpf-lsm-progs/$$p/$$p.$$bpftarget.o"; \
+		done; \
+	done
+	cp -a initramfs debian/bpf-lsm-progs/opt/bpf-lsm-progs/
+	cp -a init debian/bpf-lsm-progs/opt/bpf-lsm-progs/

@@ -1,0 +1,5 @@
+bpf-lsm-progs (0.4.0-1) unstable; urgency=medium
+
+  * Initial packaging.
+
+ -- Ricardo Branco <rbranco@suse.de>  Fri, 11 Sep 2026 11:45:59 +0200

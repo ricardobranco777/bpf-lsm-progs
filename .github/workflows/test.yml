@@ -20,8 +20,11 @@ jobs:
           sudo apt-get install -y bats busybox clang libbpf-dev llvm python3
 
       - name: Install bpftool
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
-          url=$(curl -fsSL https://api.github.com/repos/libbpf/bpftool/releases/latest \
+          url=$(curl -fsSL -H "Authorization: Bearer $GH_TOKEN" \
+              https://api.github.com/repos/libbpf/bpftool/releases/latest \
             | jq -r '.assets[].browser_download_url | select(test("bpftool-v[0-9.]+-amd64\\.tar\\.gz$"))')
           curl -fsSL "$url" | sudo tar -C /usr/local/bin -xz bpftool
           sudo chmod +x /usr/local/bin/bpftool

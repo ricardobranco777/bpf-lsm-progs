@@ -1,0 +1,14 @@
+#!/bin/sh
+set -e
+
+if [ "$1" = configure ]; then
+	# The bpf-tracepipe logging service (init/) is opt-in, same as with a
+	# manual "make install": run "make -C /opt/bpf-lsm-progs/init
+	# install" yourself if you want trace_pipe denials forwarded to your
+	# log.
+	make -C /opt/bpf-lsm-progs/initramfs install SUDO= TARGET=/opt/bpf-lsm-progs
+fi
+
+#DEBHELPER#
+
+exit 0

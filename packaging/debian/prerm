@@ -1,0 +1,10 @@
+#!/bin/sh
+set -e
+
+if [ "$1" = remove ]; then
+	make -C /opt/bpf-lsm-progs/initramfs uninstall SUDO=
+fi
+
+#DEBHELPER#
+
+exit 0

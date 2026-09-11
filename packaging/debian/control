@@ -1,0 +1,23 @@
+Source: bpf-lsm-progs
+Section: admin
+Priority: optional
+Maintainer: Ricardo Branco <rbranco@suse.de>
+Build-Depends: debhelper-compat (= 13),
+               bpftool,
+               clang,
+               libbpf-dev,
+               llvm,
+               make
+Standards-Version: 4.6.2
+Homepage: https://github.com/ricardobranco777/bpf-lsm-progs
+Rules-Requires-Root: no
+
+Package: bpf-lsm-progs
+Architecture: all
+Depends: ${misc:Depends}, make
+Description: BPF LSM programs for Linux security policy enforcement
+ Denies creation of legacy/niche socket address families and IP
+ protocols with a history of local memory-safety bugs, denies mounting
+ legacy/niche filesystem types, restricts unprivileged user namespace
+ creation, and blocks setuid/setgid bit creation for non-root
+ processes, all enforced via BPF LSM hooks.

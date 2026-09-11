@@ -1,3 +1,6 @@
 **/*.o
 **/vmlinux.h
 **/*_test
+/dist/
+/packaging/rpm/build/
+/debian/
