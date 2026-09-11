@@ -10,6 +10,10 @@
 
 #define AF_INET		2
 #define AF_INET6	10
+#define AF_ALG		38
+
+#define CAP_NET_ADMIN	12
+#define CAP_SYS_ADMIN	21
 
 /*
  * Legacy/niche protocol families with a track record of locally-triggerable
@@ -17,8 +21,17 @@
  * servers, desktops, or containers. None of these require a capability to
  * create, so any unprivileged process (including root inside a container's
  * user namespace) can reach the underlying code.
+ *
+ * AF_ALG (CVE-2026-43043 NULL deref, CVE-2026-43078 page-reassignment
+ * overflow) is deliberately not in this list: the kernel itself already
+ * gates it (net.core.af_alg_restrict, default on) requiring CAP_NET_ADMIN
+ * or CAP_SYS_ADMIN to bind algorithms outside a small allowlist, and that
+ * allowlist explicitly includes ecb(aes)/cmac(aes) "for iwd, bluez". A
+ * blanket deny here would only break bluetoothd's SMP pairing crypto
+ * (src/shared/crypto.c) without adding protection beyond what the kernel
+ * already enforces for real unprivileged callers. See alg_socket_is_denied()
+ * below for the narrower check that still closes the root-in-userns gap.
  */
-#define AF_ALG		38	/* CVE-2026-43043 (NULL deref), CVE-2026-43078 (page-reassignment overflow); userspace crypto libs use OpenSSL/etc, not the kernel crypto API */
 #define AF_APPLETALK	5	/* removed from mainline in 2026 for the same reason as AX.25 */
 #define AF_ATMPVC	8	/* CVE-2026-43050 (UAF), CVE-2026-72297 / CVE-2026-74689 (OOB); legacy ATM, essentially unused today */
 #define AF_ATMSVC	20	/* same ATM stack as AF_ATMPVC, same CVE history */
@@ -89,10 +102,27 @@ static __always_inline bool protocol_is_denied(int family, int protocol)
 	}
 }
 
+/*
+ * Mirrors the kernel's own af_alg_capable() (CAP_NET_ADMIN or CAP_SYS_ADMIN)
+ * but additionally requires the init user namespace, closing the gap the
+ * kernel check leaves open: capable() is satisfied by root inside a nested
+ * user namespace, which has those capabilities only over its own namespace,
+ * not the host's crypto subsystem.
+ */
+static __always_inline bool alg_socket_is_denied(void)
+{
+	struct task_struct *task = bpf_get_current_task_btf();
+	const struct cred *cred = BPF_CORE_READ(task, cred);
+	kernel_cap_t cap_eff = BPF_CORE_READ(cred, cap_effective);
+	bool nested = BPF_CORE_READ(cred, user_ns, level) != 0;
+	bool privileged = cap_eff.val & ((1ULL << CAP_NET_ADMIN) | (1ULL << CAP_SYS_ADMIN));
+
+	return nested || !privileged;
+}
+
 static __always_inline bool family_is_denied(int family)
 {
 	switch (family) {
-	case AF_ALG:
 	case AF_APPLETALK:
 	case AF_ATMPVC:
 	case AF_ATMSVC:
@@ -161,6 +191,11 @@ int BPF_PROG(socket_create_restrict, int family, int type, int protocol,
 		return ret;
 
 	if (family_is_denied(family)) {
+		log_deny(family, type, protocol);
+		return -EAFNOSUPPORT;
+	}
+
+	if (family == AF_ALG && alg_socket_is_denied()) {
 		log_deny(family, type, protocol);
 		return -EAFNOSUPPORT;
 	}

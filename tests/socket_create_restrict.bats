@@ -60,6 +60,17 @@ check_denied_family()
 	check_denied_family 'socket.socket(socket.AF_QIPCRTR, socket.SOCK_DGRAM)'
 }
 
+# AF_ALG needs no capability to create either, but unlike the families
+# above it has a legitimate general-purpose consumer (bluetoothd's SMP
+# pairing crypto uses ecb(aes)/cmac(aes), which the kernel's own
+# net.core.af_alg_restrict allowlist already carves out). So this is denied
+# only for callers lacking CAP_NET_ADMIN/CAP_SYS_ADMIN, or inside a nested
+# user namespace, rather than unconditionally.
+@test "socket(AF_ALG, SOCK_SEQPACKET) as non-root ($mode)" {
+	skip_if_root "policy allows privileged, non-namespaced callers"
+	check_denied_family 'socket.socket(socket.AF_ALG, socket.SOCK_SEQPACKET)'
+}
+
 # check_denied_protocol SOCKET_CALL
 # Same as check_denied_family, but for a denied (family, protocol) pair
 # rather than a denied family: the family itself (AF_INET/AF_INET6) is
