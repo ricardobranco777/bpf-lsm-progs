@@ -1,4 +1,6 @@
 # bpf-lsm-progs
+[![test](https://github.com/ricardobranco777/bpf-lsm-progs/actions/workflows/test.yml/badge.svg)](https://github.com/ricardobranco777/bpf-lsm-progs/actions/workflows/test.yml)
+
 BPF LSM programs for Linux security policy enforcement
 
 ### Programs

@@ -1,0 +1,65 @@
+name: test
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        prog: [fs_mount_restrict, setuid_restrict, socket_create_restrict, userns_restrict]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y bats busybox clang libbpf-dev llvm python3
+
+      - name: Install bpftool
+        run: |
+          url=$(curl -fsSL https://api.github.com/repos/libbpf/bpftool/releases/latest \
+            | jq -r '.assets[].browser_download_url | select(test("bpftool-v[0-9.]+-amd64\\.tar\\.gz$"))')
+          curl -fsSL "$url" | sudo tar -C /usr/local/bin -xz bpftool
+          sudo chmod +x /usr/local/bin/bpftool
+          bpftool version
+
+      - name: Check BPF LSM support
+        id: lsm
+        run: |
+          if grep -qw bpf /sys/kernel/security/lsm; then
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "::warning::bpf not in /sys/kernel/security/lsm (needs lsm=...,bpf on the kernel cmdline) — skipping load/unload steps"
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Build (little-endian)
+        working-directory: ${{ matrix.prog }}
+        run: make
+
+      - name: Build (big-endian)
+        working-directory: ${{ matrix.prog }}
+        run: make BPFTARGET=bpfeb
+
+      - name: Test (module not loaded)
+        working-directory: ${{ matrix.prog }}
+        run: make test
+
+      - name: Load
+        if: steps.lsm.outputs.enabled == 'true'
+        working-directory: ${{ matrix.prog }}
+        run: make load
+
+      - name: Test (module loaded)
+        if: steps.lsm.outputs.enabled == 'true'
+        working-directory: ${{ matrix.prog }}
+        run: make test
+
+      - name: Unload
+        if: always() && steps.lsm.outputs.enabled == 'true'
+        working-directory: ${{ matrix.prog }}
+        run: make unload
