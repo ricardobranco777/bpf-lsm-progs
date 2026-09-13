@@ -32,8 +32,8 @@ install: all
 	@for p in $(PROGS); do \
 		$(SUDO) install -D -m 644 "$$p/$$p.$(BPFTARGET).o" "$(TARGET)/$$p/$$p.$(BPFTARGET).o"; \
 	done
-	$(SUDO) $(MAKE) --no-print-directory -C initramfs install TARGET=$(TARGET) BPFTARGET=$(BPFTARGET) SUDO=$(SUDO)
+	$(MAKE) --no-print-directory -C initramfs install TARGET=$(TARGET) BPFTARGET=$(BPFTARGET) SUDO=$(SUDO)
 
 uninstall:
 	$(SUDO) rm -rf $(TARGET)
-	$(SUDO) $(MAKE) --no-print-directory -C initramfs uninstall SUDO=$(SUDO)
+	$(MAKE) --no-print-directory -C initramfs uninstall SUDO=$(SUDO)

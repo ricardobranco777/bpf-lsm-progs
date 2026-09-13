@@ -67,7 +67,7 @@ make unload
 ### Boot-time loading
 
 ```sh
-sudo make install
+make install
 ```
 
 Builds the programs, installs them under `/opt/bpf-lsm-progs` (override
@@ -75,6 +75,11 @@ with `TARGET=`), detects your initramfs generator (dracut, mkinitcpio, or
 initramfs-tools), installs the matching hook, and regenerates the
 initramfs so the programs load automatically on every boot, before the
 real init system starts.
+
+Runs the privileged steps through `sudo` by default; if you use `doas`
+instead, pass `SUDO=doas`. Don't run `make` itself under `sudo`/`doas` --
+that elevates the whole process and the privileged steps inside would try
+to elevate a second time, which `doas` rejects by default.
 
 Tested on CachyOS (Arch, mkinitcpio), Debian 13 (initramfs-tools), and
 Fedora (dracut). Alpine's `mkinitfs` has no hook mechanism for this
@@ -84,7 +89,7 @@ is still open), so it isn't supported.
 Undo with:
 
 ```sh
-sudo make uninstall
+make uninstall
 ```
 
 Removes the deployed objects and the installed hook, then regenerates
@@ -102,7 +107,7 @@ the trace pipe. To disable the logging entirely instead, build with
 `make LOGGING=0`.
 
 ```sh
-sudo make -C init install
+make -C init install
 ```
 
 Detects your init system ([Dinit](https://github.com/davmac314/dinit),
@@ -112,7 +117,7 @@ Detects your init system ([Dinit](https://github.com/davmac314/dinit),
 [SysVinit](https://wiki.gentoo.org/wiki/Sysvinit))
 and installs the matching service. On systemd, view logs with
 `journalctl -t bpf -f`; the rest go to syslog via `logger -t bpf`.
-Undo with `sudo make -C init uninstall`.
+Undo with `make -C init uninstall` (add `SUDO=doas` if that's what you use).
 
 Alternative init systems tested on Artix Linux (Arch, btw).
 [S6](https://skarnet.org/software/s6-linux-init/)

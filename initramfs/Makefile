@@ -56,7 +56,7 @@ install-mkinitcpio:
 		echo "Couldn't add bpf-lsm to HOOKS=(...) automatically (unusual" >&2; \
 		echo "formatting?) -- add it to /etc/mkinitcpio.conf yourself (after" >&2; \
 		echo "'filesystems' is typical), then re-run 'make install' (or" >&2; \
-		echo "'sudo mkinitcpio -P' yourself)." >&2; \
+		echo "'$(SUDO) mkinitcpio -P' yourself)." >&2; \
 		exit 1; \
 	fi
 	$(SUDO) mkinitcpio -P
@@ -100,7 +100,7 @@ uninstall-mkinitcpio:
 	@if grep -q '\bbpf-lsm\b' /etc/mkinitcpio.conf; then \
 		echo "Couldn't remove bpf-lsm from HOOKS=(...) automatically (unusual" >&2; \
 		echo "formatting?) -- remove it from /etc/mkinitcpio.conf yourself, then" >&2; \
-		echo "run 'sudo mkinitcpio -P' yourself." >&2; \
+		echo "run '$(SUDO) mkinitcpio -P' yourself." >&2; \
 	fi
 	$(SUDO) mkinitcpio -P
 
