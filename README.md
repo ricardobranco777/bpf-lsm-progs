@@ -3,6 +3,9 @@
 
 BPF LSM programs for Linux security policy enforcement
 
+Complement with other hardening options here:
+https://github.com/ricardobranco777/ansible-linux
+
 ### Programs
 
 | Program | LSM hooks | Description |
