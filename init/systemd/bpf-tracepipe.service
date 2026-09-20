@@ -8,7 +8,7 @@ StartLimitBurst=5
 
 [Service]
 Type=simple
-ExecStart=/bin/sh -c 'cat /sys/kernel/tracing/trace_pipe | systemd-cat -t bpf -p info'
+ExecStart=/usr/bin/systemd-cat -t bpf -p info /bin/cat /sys/kernel/tracing/trace_pipe
 Restart=always
 RestartSec=1
 
