@@ -2,6 +2,7 @@
 #include "vmlinux.h"
 #include <bpf/bpf_helpers.h>
 #include <bpf/bpf_core_read.h>
+#include <bpf/bpf_endian.h>
 #include <bpf/bpf_tracing.h>
 #include "common.bpf.h"
 
@@ -44,7 +45,7 @@ int BPF_PROG(ip_options_restrict, const struct sock *sk, struct sk_buff *skb,
 #if LOGGING
 	{
 		__be32 saddr = BPF_CORE_READ(req, __req_common.skc_daddr);
-		__u16 sport = __builtin_bswap16(BPF_CORE_READ(req, __req_common.skc_dport));
+		__u16 sport = bpf_ntohs(BPF_CORE_READ(req, __req_common.skc_dport));
 		__u16 dport = BPF_CORE_READ(req, __req_common.skc_num);
 
 		bpf_printk("ip_options_restrict: denied TCP SYN with IP options "
