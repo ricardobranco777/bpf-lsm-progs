@@ -13,6 +13,7 @@ https://github.com/ricardobranco777/ansible-linux
 | `userns_restrict` | `userns_create` | Blocks unprivileged user namespace creation. Processes without `CAP_SYS_ADMIN` (or already inside a nested namespace) cannot call `unshare(CLONE_NEWUSER)` or `clone(CLONE_NEWUSER)`. |
 | `setuid_restrict` | `path_chmod`, `inode_create`, `path_mknod` | Prevents non-root processes from creating or setting the setuid bit, or the setgid bit on non-directories, via `chmod(2)`, `open(2)`, or `mknod(2)`. Setgid on a directory (group-inherit for new entries) is exempt. |
 | `socket_create_restrict` | `socket_create` | Denies `socket(2)` for legacy/niche address families (`AF_CAN`, `AF_TIPC`, `AF_ROSE`, etc.) with a history of local memory-safety CVEs and no legitimate use on general-purpose systems. Applies to root too. |
+| `ip_options_restrict` | `inet_conn_request` | Drops incoming IPv4 TCP SYNs that carry IP options (LSRR, SSRR, RR, TS), like FreeBSD's `net.inet.ip.process_options=2`. Blocks the trigger for CVE-2026-98432. |
 | `fs_mount_restrict` | `sb_mount` | Denies `mount(2)` for legacy/niche filesystem types (`cramfs`, `hfs`, `jffs2`, `reiserfs`, etc.) with a history of local memory-safety bugs, mirroring the modprobe blacklist major distros ship but enforced even for built-in drivers or explicit `modprobe`. |
 
 ### Requirements

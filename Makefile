@@ -1,4 +1,5 @@
 PROGS := fs_mount_restrict \
+	 ip_options_restrict \
 	 setuid_restrict \
 	 socket_create_restrict \
 	 userns_restrict
